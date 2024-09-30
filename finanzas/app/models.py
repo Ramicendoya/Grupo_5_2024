@@ -24,8 +24,8 @@ class Meta(models.Model):
     def __str__(self):
         return self.nombre
     
-    class Ahorro(models.Model):
-    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+class Ahorro(models.Model):
+    personas = models.ForeignKey(Persona, on_delete=models.CASCADE)
     meta = models.ForeignKey(Meta, on_delete=models.CASCADE)
     fecha_ahorro = models.DateField()
     monto = models.DecimalField(max_digits=10, decimal_places=2)
