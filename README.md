@@ -27,7 +27,7 @@ python manage.py runserver
 
 # Estructura del proyecto:
 
-- **`mi_app/`**: Carpeta con el codigo de la app, que contiene:
+- **`app/`**: Carpeta con el codigo de la app, que contiene:
     - **`migrations/`**: Archivos para gestionar migraciones de base de datos.
     - **`static/`**: Archivos estáticos como CSS, JavaScript e imágenes.
     - **`templates/`**: Plantillas HTML utilizadas para renderizar las vistas de la aplicación.
