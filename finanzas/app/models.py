@@ -23,3 +23,30 @@ class Meta(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    class Ahorro(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+    meta = models.ForeignKey(Meta, on_delete=models.CASCADE)
+    fecha_ahorro = models.DateField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def str(self):
+        return f"Ahorro de {self.monto} para {self.meta}"
+
+class Ingreso(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion = models.TextField()
+
+    def str(self):
+        return f"Ingreso de {self.monto} el {self.fecha}"
+
+class Gasto(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def str(self):
+        return f"Gasto de {self.monto} en {self.categoria} el {self.fecha}"
