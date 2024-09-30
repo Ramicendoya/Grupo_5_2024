@@ -24,3 +24,25 @@ python manage.py migrate
 # Correr el proyecto:
 Ejecutar en la terminal (estando ubicado al mismo nivel que el archivo manage.py):
 python manage.py runserver
+
+
+
+- **`mi_app/`**: Carpeta con el codigo de la app, que contiene:
+    - **`migrations/`**: Archivos para gestionar migraciones de base de datos.
+    - **`static/`**: Archivos estáticos como CSS, JavaScript e imágenes.
+    - **`templates/`**: Plantillas HTML utilizadas para renderizar las vistas de la aplicación.
+    - **`templatetags/`**: Contiene funciones para aplicar en los templates.
+    - **`models.py`**: Definición de modelos de datos.
+    - **`urls.py`**: Define las rutas URL de la app.
+    - **`views.py`**: Lógica de las vistas de la aplicación.
+
+- **`finanzas/`**: 
+  - Carpeta de conficuración del proyecto que contiene:
+    - **`__init__.py`**: Indica que es un paquete Python.
+    - **`settings.py`**: Configuraciones del proyecto (base de datos, aplicaciones, middleware).
+    - **`urls.py`**: Define las rutas URL a nivel de proyecto.
+    - **`wsgi.py`**: Punto de entrada para servidores WSGI.
+    - **`asgi.py`**: Punto de entrada para servidores ASGI (opcional).
+
+
+
