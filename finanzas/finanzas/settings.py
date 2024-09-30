@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,12 +78,12 @@ WSGI_APPLICATION = 'finanzas.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'finanzas',  # Reemplaza con el nombre de tu base de datos
-        'USER': 'root',  # Reemplaza con tu usuario de MySQL
-        'PASSWORD': '@root2024',  # Reemplaza con tu contraseña de MySQL
-        'HOST': 'localhost',  # O la IP de tu servidor MySQL
-        'PORT': '3306',  # Puerto por defecto para MySQL
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
