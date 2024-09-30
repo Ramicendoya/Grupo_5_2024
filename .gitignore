@@ -1,0 +1,69 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+db.sqlite3-journal
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.DS_Store
+
+# Virtual Environment
+venv/
+env/
+ENV/
+venv.bak/
+*.env
+*.env.*
+Pipfile
+Pipfile.lock
+
+# MySQL
+*.sql
+*.sql.gz
+
+# Django static and media files
+/static/
+/media/
+
+# Migrations
+**/migrations/*
+!**/migrations/__init__.py
+
+# VS Code settings
+.vscode/
+
+# pyenv
+.python-version
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+
+# C extensions
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+
+# Test output
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# MySQL and other database credentials
+*.db
