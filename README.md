@@ -25,7 +25,7 @@ python manage.py migrate
 Ejecutar en la terminal (estando ubicado al mismo nivel que el archivo manage.py):
 python manage.py runserver
 
-
+# Estructura del proyecto:
 
 - **`mi_app/`**: Carpeta con el codigo de la app, que contiene:
     - **`migrations/`**: Archivos para gestionar migraciones de base de datos.
