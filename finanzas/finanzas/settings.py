@@ -78,9 +78,9 @@ WSGI_APPLICATION = 'finanzas.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nombre_de_la_base_de_datos',  # Reemplaza con el nombre de tu base de datos
-        'USER': 'nombre_de_usuario',  # Reemplaza con tu usuario de MySQL
-        'PASSWORD': 'contraseña',  # Reemplaza con tu contraseña de MySQL
+        'NAME': 'finanzas',  # Reemplaza con el nombre de tu base de datos
+        'USER': 'root',  # Reemplaza con tu usuario de MySQL
+        'PASSWORD': '@root2024',  # Reemplaza con tu contraseña de MySQL
         'HOST': 'localhost',  # O la IP de tu servidor MySQL
         'PORT': '3306',  # Puerto por defecto para MySQL
     }
