@@ -26,13 +26,6 @@ Pipfile.lock
 *.sql
 *.sql.gz
 
-# Django static and media files
-/static/
-/media/
-
-# Migrations
-**/migrations/*
-!**/migrations/__init__.py
 
 # VS Code settings
 .vscode/
