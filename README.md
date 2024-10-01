@@ -1,8 +1,10 @@
 # Grupo_5_2024
 
-# Para instalar dependencias ejecutar en la terminal:
+# Instalar dependencias:
+Ejecutar en la terminal:
 
 `pip install -r requirements.txt`
+
 
 # Configurar conexión con MySql
 Crear un archivo que se llame .env en la raíz del proyecto(al mismo nivel que lo archivos .gitignore, readme y requeriments) y copiar y rellenar las siguientes variables de entorno con los datos de sus credenciales de mysql y el nombre de su bd:
@@ -16,19 +18,27 @@ DB_HOST=localhost
 DB_PORT=3306
 ```
 
-# Realizar migraciones metodología Database First (usaremos esta metodología para este proyecto)
+
+# Realizar migraciones de la base de datos hacia el proyecto
+Este comando transforma las tablas de la base de datos en modelos de Django y los guarda en el archivo models.py:
+
 `python manage.py inspectdb > app/models.py`
 
-# Realizar migraciones metodología Code First
-Para crearlas:
+
+# Realizar migraciones desde el proyecto hacia la base de datos
+Este comando crea un archivo de migración, de los modelos de Django que hayamos definido, en el archivo models.py:
+
 `python manage.py makemigrations`
 
-Para aplicarlas:
+Este comando aplica los archivos de migracion pendientes a la base de datos:
+
 `python manage.py migrate`
+
 
 # Correr el proyecto:
 Ejecutar en la terminal (estando ubicado al mismo nivel que el archivo manage.py):
 `python manage.py runserver`
+
 
 # Estructura del proyecto:
 
