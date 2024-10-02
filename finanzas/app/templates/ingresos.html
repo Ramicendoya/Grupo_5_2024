@@ -26,11 +26,13 @@
 
                 <!-- Monto Fijo check -->
                 <div class="col-md-4 mb-3 d-flex align-items-center">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="ingreso_fijo" name="tipo_ingreso" value="fijo">
-                        <label class="form-check-label" for="ingreso_fijo" style="white-space: nowrap;">Ingreso Fijo</label>
+                    <div class="form-check" id="fijo-checkbox">
+                        <input class="form-check-input" type="checkbox" id="ingreso_fijo" name="tipo_ingreso" value="fijo" onchange="toggleFields()">
+                        <label class="form-check-label ms-2" for="ingreso_fijo" style="white-space: nowrap;">Ingreso Fijo</label>
                     </div>
-                </div>                
+                </div>
+
+   
             </div>
 
             <!-- Categorias -->
@@ -179,7 +181,36 @@
         padding: 1%; 
         margin: 1%; 
     }
+    #fijo-checkbox{
+        margin-top: 9%;
+        margin-left: 30%;
+    }
 </style>
+
+<script>
+    function toggleFields() {
+        const ingresoFijo = document.getElementById('ingreso_fijo');
+        const frecuenciaIngreso = document.getElementById('frecuencia_ingreso');
+        const duracionSwitch = document.getElementById('duracionSwitch');
+        const duracionInput = document.getElementById('duracion');
+    
+        // Habilitar o deshabilitar los campos según si el checkbox está marcado o no
+        if (ingresoFijo.checked) {
+            frecuenciaIngreso.disabled = false;
+            duracionSwitch.disabled = false;
+            duracionInput.disabled = false;
+        } else {
+            frecuenciaIngreso.disabled = true;
+            duracionSwitch.disabled = true;
+            duracionInput.disabled = true;
+        }
+    }
+    
+    // Llama a la función para asegurarse de que los campos estén correctamente configurados al cargar la página
+    window.onload = toggleFields;
+</script>
+
+
 
 {% endblock %}
 
