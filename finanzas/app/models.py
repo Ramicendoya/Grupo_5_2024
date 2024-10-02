@@ -38,6 +38,7 @@ class Ingreso(models.Model):
     fecha = models.DateField()
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
+    fijo = models.BooleanField(default=False)
 
     def str(self):
         return f"Ingreso de {self.monto} el {self.fecha}"
