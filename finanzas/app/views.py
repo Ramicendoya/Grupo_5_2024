@@ -19,8 +19,8 @@ def gastos(request):
 class GastoView(View):
     def get(self, request):
         # Obtiene la lista de ingresos fijos y variables
-        gastos_fijos = Gasto.objects.filter(bl_fijo=True)
-        gastos_variables = Gasto.objects.filter(bl_fijo=False)
+        gastos_fijos = Gasto.objects.filter(bl_fijo=True,bl_baja=0)
+        gastos_variables = Gasto.objects.filter(bl_fijo=False,bl_baja=0)
         categorias= Categoria.objects.filter(bl_baja=0)
         # Crea un contexto para pasar los ingresos a la plantilla
         context = {

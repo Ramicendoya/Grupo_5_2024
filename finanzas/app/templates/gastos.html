@@ -115,23 +115,36 @@
         <div class="tab-content" id="gastosTabsContent">
             <div class="tab-pane fade show active" id="gastos-fijos" role="tabpanel" aria-labelledby="gastos-fijos-tab">
                 <!-- Listado de gastos Fijos -->
-                {% for gasto in gastos_fijos %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <span>{{ gasto.categoria.nombre }} - {{gasto.observaciones}}- ${{ gasto.monto }} </span>:
+                    <div class="container mt-5">
+                        <h2>Tabla de Gastos Fijos</h2>
+                        <div class="table-responsive">
+                            <table id="miTabla" class="table table-striped table-bordered display">
+                                <thead>
+                                    <tr>
+                                        <!-- Definimos tres columnas -->
+                                        <th>Categoria</th>
+                                        <th>Descripcion</th>
+                                        <th>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for gasto in gastos_fijos %}
+                                    <tr>
+                                        <td>{{ gasto.categoria.nombre }}</td>
+                                        <td>{{ gasto.observaciones }}</td>
+                                        <td>${{ gasto.monto }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <!-- Usamos colspan="3" para cubrir las tres columnas -->
+                                    <tr>
+                                        <td colspan="3" class="text-center">No hay gastos fijos registrados.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
-                        <form action="" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="p-3">No hay gastos fijos registrados.</div>
-                {% endfor %}
+
             </div>
             
             <div class="tab-pane fade" id="gastos-variables" role="tabpanel" aria-labelledby="gastos-variables-tab">
@@ -158,6 +171,13 @@
     </div>
     
 </div>
+<!--Tablas-->
+  <script>
+    $(document).ready(function () {
+        $('#miTabla').DataTable();
+    });
+</script>
+<!-- FinTablas-->
 
 <style>
     body {
