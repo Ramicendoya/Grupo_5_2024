@@ -14,8 +14,9 @@ class Persona(models.Model):
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     detalle = models.TextField(null=True, blank=True)
-    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, null=True)
     bl_baja = models.BooleanField(default=False)
+    bl_general = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre
