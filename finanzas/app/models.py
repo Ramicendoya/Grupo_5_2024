@@ -40,8 +40,9 @@ class Gasto(models.Model):
     observaciones = models.TextField(null=True, blank=True)
     persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, null=True, blank=True)
-    fijo = models.BooleanField(default=False)
+    bl_fijo = models.BooleanField(default=False)
     bl_baja = models.BooleanField(default=False)
+    metodo_pago = models.TextField(null=False, blank=False)
 
     def __str__(self):
         return f"Gasto de {self.monto} - {self.persona}"
