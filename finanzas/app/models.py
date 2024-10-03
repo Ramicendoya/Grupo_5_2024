@@ -30,6 +30,7 @@ class Ingreso(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     bl_fijo = models.BooleanField(default=False)
     bl_baja = models.BooleanField(default=False)
+    metodo_pago = models.TextField(null=False, blank=False)
 
     def __str__(self):
         return self.nombre
