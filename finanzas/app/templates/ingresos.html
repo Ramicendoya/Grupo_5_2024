@@ -11,8 +11,8 @@
 
                 <!-- Nombre del Ingreso-->
                 <div class="col-md-4 mb-3">
-                    <label for="nombre_ingreso" class="form-label">Nombre del Ingreso</label>
-                    <input type="text" class="form-control" id="nombre_ingreso" name="nombre_ingreso" required>
+                    <label for="nombre" class="form-label">Nombre del Ingreso</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required>
                 </div>
 
                 <!-- Métodos de pago-->
@@ -41,19 +41,9 @@
                     <label for="categoria" class="form-label">Categoría</label>
                     <div class="input-group">
                         <select class="form-select" id="categoria" name="categoria" required>
-                            <option value="salario">Salario</option>
-                            <option value="freelance">Freelance</option>
-                            <option value="inversiones">Inversiones</option>
-                            <option value="alquiler">Alquiler</option>
-                            <option value="intereses">Intereses</option>
-                            <option value="regalos">Regalos</option>
-                            <option value="bonificaciones">Bonificaciones</option>
-                            <option value="ventas">Ventas</option>
-                            <option value="dividendos">Dividendos</option>
-                            <option value="premios">Premios</option>
-                            <option value="comisiones">Comisiones</option>
-                            <option value="gastos_reembolsados">Gastos Reembolsados</option>
-                            <option value="otros">Otros</option>
+                            {% for categoria in categorias %}
+                               <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
                         </select>
                         <button class="btn btn-outline-secondary" type="button" id="add_category">+</button>
                     </div>
@@ -136,7 +126,7 @@
                 {% for ingreso in ingresos_fijos %}
                 <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
                     <div>
-                        <span>{{ ingreso.categoria }} - ${{ ingreso.monto }} - {{ingreso.descripcion}} - {{ ingreso.fecha }} </span>:
+                        <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }} </span>
                     </div>
                     <div>
                         <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
@@ -157,7 +147,7 @@
                 {% for ingreso in ingresos_variables %}
                 <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
                     <div>
-                        <span>{{ ingreso.categoria }} - ${{ ingreso.monto }} - {{ingreso.descripcion}} - {{ ingreso.fecha }}</span>:
+                        <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }} </span>
                     </div>
                     <div>
                         <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>

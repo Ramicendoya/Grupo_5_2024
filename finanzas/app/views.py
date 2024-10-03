@@ -19,31 +19,41 @@ def gastos(request):
 
 class IngresoView(View):
     def get(self, request):
-        # Obtiene la lista de ingresos fijos y variables
-        ingresos_fijos = Ingreso.objects.filter(fijo=True)
-        ingresos_variables = Ingreso.objects.filter(fijo=False)
+        # Obtiene la lista de ingresos fijos y variables, que no esten dados de baja
+        ingresos_fijos = Ingreso.objects.filter(bl_fijo=True, bl_baja=False)
+        ingresos_variables = Ingreso.objects.filter(bl_fijo=False, bl_baja=False)
+
+    	# Obtiene la lista de categorias que no esten dadas de baja
+        categorias = Categoria.objects.filter(bl_baja=False)
         
         # Crea un contexto para pasar los ingresos a la plantilla
         context = {
             'ingresos_fijos': ingresos_fijos,
             'ingresos_variables': ingresos_variables,
+            'categorias': categorias,
         }
         return render(request, 'ingresos.html', context)
 
     def post(self, request):
-
+        nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         monto = request.POST.get('monto')
         fijo = 'tipo_ingreso' in request.POST
+        categoria_id = request.POST.get('categoria') 
+        categoria = get_object_or_404(Categoria, id=categoria_id)
+        metodo_pago = request.POST.get('metodo_pago')
 
         persona = Persona.objects.first() 
 
         ingreso = Ingreso(
+            nombre=nombre,
             persona=persona,
             fecha=timezone.now(), 
             monto=monto,
             descripcion=descripcion,
-            fijo=fijo,
+            bl_fijo=fijo,
+            categoria = categoria,
+            metodo_pago = metodo_pago,
         )
         ingreso.save()
 
