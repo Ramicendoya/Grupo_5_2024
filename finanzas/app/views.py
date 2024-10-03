@@ -78,3 +78,17 @@ class EliminarIngreso(View):
 
         return redirect('registrar_ingreso')
     
+
+class CategoriaView(View):
+
+   def post(self, request):        
+
+        categoria = Categoria(
+            nombre=request.POST.get('nombre_categoria'),
+            detalle=request.POST.get('detalle'),
+            persona=Persona.objects.first(), # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+            bl_general = 0,
+        )
+        categoria.save()
+
+        return redirect('registrar_ingreso')
