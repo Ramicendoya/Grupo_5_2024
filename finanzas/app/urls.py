@@ -1,8 +1,20 @@
 from django.urls import path
 from . import views
-
+from .models import Ingreso, Persona, Categoria
+from django.utils import timezone
+from django.views import View
+from .views import GastoView,CategoriaView
 urlpatterns = [
     path('', views.home, name='home'),
+
     path('ingresos/', views.ingresos, name='ingresos'),
-    path('gastos/', views.gastos, name='gastos'),
+
+    #Gastos
+    
+    path('registrar/gasto/', GastoView.as_view(), name='registrar_gasto'),
+    path('registrar/gasto/cargarCategoria', CategoriaView.as_view(), name='cargar_categoria'),
+    
+
+
+
 ]

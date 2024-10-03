@@ -16,6 +16,7 @@ class Categoria(models.Model):
     detalle = models.TextField(null=True, blank=True)
     persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
     bl_baja = models.BooleanField(default=False)
+    bl_general = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre

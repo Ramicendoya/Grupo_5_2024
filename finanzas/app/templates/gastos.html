@@ -2,19 +2,241 @@
 {% load static %}
 
 {% block main %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-</head>
-<body>
-    <header align="center">
-        <img src="{% static 'img/gastos.JPG' %}" >
-    </header>
-</body>
-</html>
+<div class="container mt-5"></div>
+    <div class="form-section">
+        <h3 class="text-center">Registrar Gastos</h3>
+        <form method="POST" action="{% url 'registrar_gasto' %}">
+            {% csrf_token %}
+            <div class="row">
 
+                <!-- Nombre del gastos-->
+                <div class="col-md-4 mb-3">
+                    <label for="nombre_gasto" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="nombre_gasto" name="nombre_gasto" required>
+                </div>
+                <!-- Categorias -->
+                <div class="col-md-4 mb-3">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <div class="input-group">
+                        <select class="form-select" id="categoria" name="categoria" required>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="add_category">+</button>
+                    </div>
+                </div>
+              
+       
+            </div>
+
+            
+            <div class="row">
+                  <!-- Métodos de pago-->
+                  <div class="col-md-4 mb-3">
+                    <label for="metodo_pago" class="form-label">Método de Pago</label>
+                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+
+
+                <!-- Descripcion -->
+            <!--<div class="col-md-4 mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <input type="text" class="form-control" id="descripcion" name="descripcion">
+                </div>
+            -->
+                 <!-- Monto -->
+                
+          
+            
+
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="monto" class="form-label">Monto</label>
+                        <div class="d-flex align-items-center">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="gasto_fijo" name="tipo_gasto" value="1" onchange="toggleFields()">
+                            </div>
+                            <span class="ms-2">Fijo</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="monto" name="monto" required>
+                    </div>
+                </div>                 
+            </div>
+       
+            <div class="row">
+             
+                <!-- Frecuencia de gastos -->
+                <div class="col-md-4 mb-3 ">
+                    <label for="frecuencia_gastos" class="form-label">Frecuencia de Gastos</label>
+                    <input type="text" class="form-control" id="frecuencia_gastos" name="frecuencia_gastos">
+                </div>
+
+               
+
+                <!-- Duracion -->
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="duracion" class="form-label">Duración</label>
+                        <div class="d-flex align-items-center">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="duracionSwitch" name="duracionSwitch">
+                            </div>
+                            <span class="ms-2">Indefinido</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="duracion" name="duracion" placeholder="">
+                    </div>
+                </div>                
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Agregar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Listado de Gastos -->
+    <div class="form-section">
+        <ul class="nav nav-tabs" id="gastosTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="gastos-fijos-tab" data-bs-toggle="tab" data-bs-target="#gastos-fijos" type="button" role="tab" aria-controls="gastos-fijos" aria-selected="true">gastos Fijos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gastos-variables-tab" data-bs-toggle="tab" data-bs-target="#gastos-variables" type="button" role="tab" aria-controls="gastos-variables" aria-selected="false">gastos Variables</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="gastosTabsContent">
+            <div class="tab-pane fade show active" id="gastos-fijos" role="tabpanel" aria-labelledby="gastos-fijos-tab">
+                <!-- Listado de gastos Fijos -->
+                {% for gasto in gastos_fijos %}
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <span>{{ gasto.categoria.nombre }} - {{gasto.observaciones}}- ${{ gasto.monto }} </span>:
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
+                        <form action="" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-3">No hay gastos fijos registrados.</div>
+                {% endfor %}
+            </div>
+            
+            <div class="tab-pane fade" id="gastos-variables" role="tabpanel" aria-labelledby="gastos-variables-tab">
+                <!-- Listado de gastos Variables -->
+                {% for gasto in gastos_variables %}
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <span> {{ gasto.categoria.nombre }} -{{gasto.observaciones}} -${{ gasto.monto }} -  </span>:
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
+                        <form action="" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-3">No hay gastos variables registrados.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
     
+</div>
+
+<style>
+    body {
+        background-color: #dfdfdf;
+    }
+    .form-section {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px; 
+        padding: 1%; 
+        margin: 1%; 
+    }
+    #fijo-checkbox{
+        margin-top:20%;
+     
+    }
+</style>
+<!-- Modal -->
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Agregar Categoria</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <form method="POST" action="{% url 'cargar_categoria' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="d-flex align-items-center">
+                            <!--Nombre categoria-->
+                            <div class="col-md-12 mb-3">
+                                <label for="nombre_categoria" class="form-label">Nombre categoria(*)</label>
+                                <input type="text" class="form-control" id="id_categoria" name="nombre_categoria" required>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="col-md-12 mb-3">
+                                <label for="detalle_categoria" class="form-label">detalle</label>
+                                <input type="text" class="form-control" id="detalle_categoria" name="detalle_categoria">
+                            </div>
+                       </div>
+                       <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Cargar</button>
+                      </div>
+                   
+            </form>
+      </div>
+   
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+    function toggleFields() {
+        const gastosFijo = document.getElementById('gasto_fijo');
+        const frecuenciagastos = document.getElementById('frecuencia_gastos');
+        const duracionSwitch = document.getElementById('duracionSwitch');
+        const duracionInput = document.getElementById('duracion');
+
+        // Habilitar o deshabilitar los campos según si el checkbox está marcado o no
+        if (gasto_fijo.checked) {
+            frecuenciagastos.disabled = false;
+            duracionSwitch.disabled = false;
+            duracionInput.disabled = false;
+        } else {
+            frecuenciagastos.disabled = true;
+            duracionSwitch.disabled = true;
+            duracionInput.disabled = true;
+        }
+    }
+
+    // Llama a la función para asegurarse de que los campos estén correctamente configurados al cargar la página
+    window.onload = toggleFields;
+</script>
+
+
 {% endblock %}
+
