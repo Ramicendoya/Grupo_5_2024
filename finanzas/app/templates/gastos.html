@@ -134,11 +134,6 @@
                                         <td>{{ gasto.observaciones }}</td>
                                         <td>${{ gasto.monto }}</td>
                                     </tr>
-                                    {% empty %}
-                                    <!-- Usamos colspan="3" para cubrir las tres columnas -->
-                                    <tr>
-                                        <td colspan="3" class="text-center">No hay gastos fijos registrados.</td>
-                                    </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -172,9 +167,13 @@
     
 </div>
 <!--Tablas-->
-  <script>
-    $(document).ready(function () {
-        $('#miTabla').DataTable();
+<script>
+    $(document).ready(function() {
+        $('#miTabla').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
     });
 </script>
 <!-- FinTablas-->
