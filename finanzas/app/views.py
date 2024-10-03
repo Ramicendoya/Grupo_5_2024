@@ -70,7 +70,8 @@ class EliminarIngreso(View):
 
         # Verifico si el ingreso pertenece a la persona
         if ingreso.persona == persona:
-            ingreso.delete()
+            ingreso.bl_baja = True
+            ingreso.save()
             messages.success(request, "Ingreso eliminado con éxito.")
         else:
             messages.error(request, "El ingreso no pertenece a la persona especificada.")
