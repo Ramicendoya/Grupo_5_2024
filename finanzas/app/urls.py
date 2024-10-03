@@ -4,7 +4,7 @@ from .views import IngresoView, EliminarIngreso
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('gastos/', views.gastos, name='gastos'),
+    path('gastos/', views.gastos, name='registrar_gasto'),
 
 
     # Registrar Ingresos
