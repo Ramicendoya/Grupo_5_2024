@@ -60,3 +60,6 @@ coverage.xml
 
 # MySQL and other database credentials
 *.db
+
+# migraciones
+**/migrations/
