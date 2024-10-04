@@ -3,177 +3,204 @@
 
 {% block main %}
 <div class="container mt-5"></div>
-    <div class="form-section">
-        <h3 class="text-center">Registrar Ingresos</h3>
-        <form method="POST" action="{% url 'registrar_ingreso' %}">
-            {% csrf_token %}
-            <div class="row">
+<div class="form-section">
+    <h3 class="text-center">Registrar Ingresos</h3>
+    <form method="POST" action="{% url 'registrar_ingreso' %}">
+        {% csrf_token %}
+        <div class="row">
 
-                <!-- Nombre del Ingreso-->
-                <div class="col-md-4 mb-3">
-                    <label for="nombre" class="form-label">Nombre del Ingreso</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+            <!-- Nombre del Ingreso-->
+            <div class="col-md-4 mb-3">
+                <label for="nombre" class="form-label">Nombre del Ingreso</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+
+            <!-- Métodos de pago-->
+            <div class="col-md-4 mb-3">
+                <label for="metodo_pago" class="form-label">Método de Pago</label>
+                <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                </select>
+            </div>
+
+            <!-- Monto Fijo check -->
+            <div class="col-md-4 mb-3 d-flex align-items-center">
+                <div class="form-check" id="fijo-checkbox">
+                    <input class="form-check-input" type="checkbox" id="ingreso_fijo" name="tipo_ingreso" value="fijo"
+                        onchange="toggleFields()">
+                    <label class="form-check-label ms-2" for="ingreso_fijo" style="white-space: nowrap;">Ingreso
+                        Fijo</label>
                 </div>
+            </div>
 
-                <!-- Métodos de pago-->
-                <div class="col-md-4 mb-3">
-                    <label for="metodo_pago" class="form-label">Método de Pago</label>
-                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
-                        <option value="efectivo">Efectivo</option>
-                        <option value="tarjeta">Tarjeta</option>
+
+        </div>
+
+        <!-- Categorias -->
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="categoria" class="form-label">Categoría</label>
+                <div class="input-group">
+                    <select class="form-select" id="categoria" name="categoria" required>
+                        {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
                     </select>
-                </div>
-
-                <!-- Monto Fijo check -->
-                <div class="col-md-4 mb-3 d-flex align-items-center">
-                    <div class="form-check" id="fijo-checkbox">
-                        <input class="form-check-input" type="checkbox" id="ingreso_fijo" name="tipo_ingreso" value="fijo" onchange="toggleFields()">
-                        <label class="form-check-label ms-2" for="ingreso_fijo" style="white-space: nowrap;">Ingreso Fijo</label>
-                    </div>
-                </div>
-
-   
-            </div>
-
-            <!-- Categorias -->
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="categoria" class="form-label">Categoría</label>
-                    <div class="input-group">
-                        <select class="form-select" id="categoria" name="categoria" required>
-                            {% for categoria in categorias %}
-                               <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="add_category">+</button>
-                    </div>
-                </div>
-
-                <!-- Descripcion -->
-                <div class="col-md-4 mb-3">
-                    <label for="descripcion" class="form-label">Descripción</label>
-                    <input type="text" class="form-control" id="descripcion" name="descripcion">
-                </div>
-
-                <!-- Frecuencia de Ingreso -->
-                <div class="col-md-4 mb-3">
-                    <label for="frecuencia_ingreso" class="form-label">Frecuencia de Ingreso</label>
-                    <input type="text" class="form-control" id="frecuencia_ingreso" name="frecuencia_ingreso">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                        data-bs-target="#modalCategoria" id="add_category">+</button>
                 </div>
             </div>
-       
-            <div class="row">
 
-                <!-- Monto -->
-                <div class="col-md-4 mb-3">
-                    <label for="monto" class="form-label">Monto</label>
-                    <input type="text" class="form-control" id="monto" name="monto" required>
-                </div>
-
-                <!-- Monto a ahorrar -->
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label for="monto_ahorrar" class="form-label">Monto a Ahorrar</label>
-                        <div class="d-flex align-items-center">
-                            <span class="me-2">$</span>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="montoSwitch" name="montoSwitch">
-                            </div>
-                            <span class="ms-2">%</span>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="monto_ahorrar" name="monto_ahorrar">
-                    </div>
-                </div>
-
-                <!-- Duracion -->
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label for="duracion" class="form-label">Duración</label>
-                        <div class="d-flex align-items-center">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="duracionSwitch" name="duracionSwitch">
-                            </div>
-                            <span class="ms-2">Indefinido</span>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="duracion" name="duracion" placeholder="">
-                    </div>
-                </div>                
+            <!-- Descripcion -->
+            <div class="col-md-4 mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <input type="text" class="form-control" id="descripcion" name="descripcion">
             </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">Agregar</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Listado de Ingresos -->
-    <div class="form-section">
-        <ul class="nav nav-tabs" id="ingresosTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab" data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos" aria-selected="true">Ingresos Fijos</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab" data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables" aria-selected="false">Ingresos Variables</button>
-            </li>
-        </ul>
-        <div class="tab-content" id="ingresosTabsContent">
-            <div class="tab-pane fade show active" id="ingresos-fijos" role="tabpanel" aria-labelledby="ingresos-fijos-tab">
-                <!-- Listado de Ingresos Fijos -->
-                {% for ingreso in ingresos_fijos %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }} </span>
-                    </div>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
-                        <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="p-3">No hay ingresos fijos registrados.</div>
-                {% endfor %}
-            </div>
-            
-            <div class="tab-pane fade" id="ingresos-variables" role="tabpanel" aria-labelledby="ingresos-variables-tab">
-                <!-- Listado de Ingresos Variables -->
-                {% for ingreso in ingresos_variables %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }} </span>
-                    </div>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
-                        <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="p-3">No hay ingresos variables registrados.</div>
-                {% endfor %}
+            <!-- Frecuencia de Ingreso -->
+            <div class="col-md-4 mb-3">
+                <label for="frecuencia_ingreso" class="form-label">Frecuencia de Ingreso</label>
+                <input type="text" class="form-control" id="frecuencia_ingreso" name="frecuencia_ingreso">
             </div>
         </div>
-    </div>
-    
+
+        <div class="row">
+
+            <!-- Monto -->
+            <div class="col-md-4 mb-3">
+                <label for="monto" class="form-label">Monto</label>
+                <input type="text" class="form-control" id="monto" name="monto" required>
+            </div>
+
+            <!-- Monto a ahorrar -->
+            <div class="col-md-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label for="monto_ahorrar" class="form-label">Monto a Ahorrar</label>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">$</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="montoSwitch" name="montoSwitch">
+                        </div>
+                        <span class="ms-2">%</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="monto_ahorrar" name="monto_ahorrar">
+                </div>
+            </div>
+
+            <!-- Duracion -->
+            <div class="col-md-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label for="duracion" class="form-label">Duración</label>
+                    <div class="d-flex align-items-center">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="duracionSwitch" name="duracionSwitch">
+                        </div>
+                        <span class="ms-2">Indefinido</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="duracion" name="duracion" placeholder="">
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">Agregar</button>
+        </div>
+    </form>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<!-- Listado de Ingresos -->
+<div class="form-section">
+    <ul class="nav nav-tabs" id="ingresosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab"
+                data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos"
+                aria-selected="true">Ingresos Fijos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab"
+                data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables"
+                aria-selected="false">Ingresos Variables</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="ingresosTabsContent">
+        <div class="tab-pane fade show active" id="ingresos-fijos" role="tabpanel" aria-labelledby="ingresos-fijos-tab">
+
+            <!-- Listado de Ingresos Fijos -->
+            {% for ingreso in ingresos_fijos %}
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                <div>
+                    <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }}
+                    </span>
+                </div>
+                <div>
+                    <!-- Ver mas informacion -->
+                    <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+
+                    <!-- Editar -->
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}"
+                        onclick="abrirModalEditar('{{ingreso.id}}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <!-- Eliminar -->
+                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
+                        style="display: inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-3">No hay ingresos fijos registrados.</div>
+            {% endfor %}
+        </div>
+
+        <div class="tab-pane fade" id="ingresos-variables" role="tabpanel" aria-labelledby="ingresos-variables-tab">
+            <!-- Listado de Ingresos Variables -->
+            {% for ingreso in ingresos_variables %}
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                <div>
+                    <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }}
+                    </span>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+
+                    <!-- Editar -->
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}"
+                        onclick="abrirModalEditar('{{ingreso.id}}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
+                        style="display: inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-3">No hay ingresos variables registrados.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal Categoria -->
+<div class="modal fade" id="modalCategoria" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalCategoriaLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Agregar Categoria</h1>
+                <h1 class="modal-title fs-5" id="modalCategoriaLabel">Agregar Categoria</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -183,7 +210,7 @@
                         <div class="d-flex align-items-center">
                             <!--Nombre categoria-->
                             <div class="col-md-12 mb-3">
-                                <label for="nombre_categoria" class="form-label">Nombre categoria *</label>
+                                <label for="id_categoria" class="form-label">Nombre categoria *</label>
                                 <input type="text" class="form-control" id="id_categoria" name="nombre_categoria"
                                     required>
                             </div>
@@ -198,31 +225,87 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="submit" class="btn btn-primary">Cargar</button>
                         </div>
-
+                    </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
 
 
 
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabel">Editar Ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarIngreso" method="POST" action="" onsubmit="return enviarEdicion(event)">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombreModal" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreModal" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionModal" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="descripcionModal" name="descripcion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="montoModal" class="form-label">Monto</label>
+                        <input type="number" class="form-control" id="montoModal" name="monto" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoriaModal" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoriaModal" name="categoria" required>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                        <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="tipo_ingresoModal" name="tipo_ingreso">
+                        <label class="form-check-label" for="tipo_ingresoModal">Ingreso Fijo</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <style>
     body {
         background-color: #dfdfdf;
     }
+
     .form-section {
         background-color: rgb(255, 255, 255);
-        border-radius: 10px; 
-        padding: 1%; 
-        margin: 1%; 
+        border-radius: 10px;
+        padding: 1%;
+        margin: 1%;
     }
-    #fijo-checkbox{
+
+    #fijo-checkbox {
         margin-top: 9%;
         margin-left: 30%;
     }
 </style>
+
+
 
 <script>
     function toggleFields() {
@@ -230,8 +313,8 @@
         const frecuenciaIngreso = document.getElementById('frecuencia_ingreso');
         const duracionSwitch = document.getElementById('duracionSwitch');
         const duracionInput = document.getElementById('duracion');
-    
-        // Habilitar o deshabilitar los campos según si el checkbox está marcado o no
+
+        // Habilita o deshabilita los campos según si el checkbox está marcado o no
         if (ingresoFijo.checked) {
             frecuenciaIngreso.disabled = false;
             duracionSwitch.disabled = false;
@@ -242,12 +325,68 @@
             duracionInput.disabled = true;
         }
     }
-    
-    // Llama a la función para asegurarse de que los campos estén correctamente configurados al cargar la página
+
+    // Hace que se ejecute la funcion al cargarse completamente la pagina
     window.onload = toggleFields;
+
+
+    function abrirModalEditar(ingresoId) {
+        fetch(`/ingresos/obtener/${ingresoId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    // Llena el modal con los datos del ingreso
+                    document.getElementById('nombreModal').value = data.nombre;
+                    document.getElementById('descripcionModal').value = data.descripcion;
+                    document.getElementById('montoModal').value = data.monto;
+                    document.getElementById('categoriaModal').value = data.categoria_id;
+                    document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+                    document.getElementById('tipo_ingresoModal').checked = data.bl_fijo;
+
+                    // Actualiza el action del formulario para que envíe a la URL de actualizar
+                    const form = document.getElementById('formEditarIngreso');
+                    form.action = `/ingresos/editar/${ingresoId}/`;
+
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function enviarEdicion(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/registrar/ingreso/';
+
+                } else {
+                    alert("Error al guardar los cambios");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+    }
+
+
+    // Función para obtener el token CSRF
+    function getCookie(name) {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
+        return cookieValue ? decodeURIComponent(cookieValue) : null;
+    }
+
 </script>
 
-
-
 {% endblock %}
-

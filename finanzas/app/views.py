@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from .models import Ingreso, Persona, Categoria
 from django.utils import timezone
 from django.views import View
@@ -19,14 +19,14 @@ def gastos(request):
 
 class IngresoView(View):
     def get(self, request):
-        # Obtiene la lista de ingresos fijos y variables, que no esten dados de baja
+        # Obtengo la lista de ingresos fijos y variables, que no esten dados de baja
         ingresos_fijos = Ingreso.objects.filter(bl_fijo=True, bl_baja=False)
         ingresos_variables = Ingreso.objects.filter(bl_fijo=False, bl_baja=False)
 
-    	# Obtiene la lista de categorias que no esten dadas de baja
+    	# Obtengo la lista de categorias que no esten dadas de baja
         categorias = Categoria.objects.filter(bl_baja=False)
         
-        # Crea un contexto para pasar los ingresos a la plantilla
+        # Creo un contexto para pasar los ingresos a la plantilla
         context = {
             'ingresos_fijos': ingresos_fijos,
             'ingresos_variables': ingresos_variables,
@@ -65,7 +65,7 @@ class EliminarIngreso(View):
         # Esto tenemos que reemplazarlo por la persona autenticada en la aplicacion
         persona = get_object_or_404(Persona, pk=1)
         
-        # Busca el ingreso por la pk que se pasa en la URL
+        # Busco el ingreso por la pk que se pasa en la URL
         ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
 
         # Verifico si el ingreso pertenece a la persona
@@ -77,6 +77,53 @@ class EliminarIngreso(View):
             messages.error(request, "El ingreso no pertenece a la persona especificada.")
 
         return redirect('registrar_ingreso')
+    
+class EditarIngresoView(View):
+    def post(self, request, ingreso_pk):
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1)  # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        # Busca el ingreso por la pk que se pasa en la URL
+        ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
+
+        # Verifico si el ingreso pertenece a la persona
+        if ingreso.persona != persona:
+            messages.error(request, "No tienes permisos para editar este ingreso.")
+            return redirect('registrar_ingreso')
+
+        ingreso.nombre = request.POST.get('nombre')
+        ingreso.descripcion = request.POST.get('descripcion')
+        ingreso.monto = request.POST.get('monto')
+        ingreso.bl_fijo = 'tipo_ingreso' in request.POST
+        categoria_id = request.POST.get('categoria')
+        ingreso.categoria = get_object_or_404(Categoria, id=categoria_id)
+        ingreso.metodo_pago = request.POST.get('metodo_pago')
+
+        ingreso.save()
+        messages.success(request, "Ingreso actualizado con éxito.")
+        return redirect('registrar_ingreso')
+    
+class ObtenerIngresoView(View):
+    def get(self, request, ingreso_pk):
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        # Busco el ingreso por la pk que se pasa en la URL
+        ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
+
+        # Verifico si el ingreso pertenece a la persona
+        if ingreso.persona == persona:
+            ingreso_data = {
+                'nombre': ingreso.nombre,
+                'descripcion': ingreso.descripcion,
+                'monto': ingreso.monto,
+                'categoria_id': ingreso.categoria.id,
+                'metodo_pago': ingreso.metodo_pago,
+                'bl_fijo': ingreso.bl_fijo
+            }
+            return JsonResponse(ingreso_data)
+        else:
+            return JsonResponse({'error': 'Ingreso no pertenece a la persona autenticada'}, status=404)
     
 
 class CategoriaView(View):
