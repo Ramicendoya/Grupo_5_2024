@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import Ingreso, Persona, Categoria
+from .models import Ingreso, Persona, Categoria,Recurrencia
 from django.utils import timezone
 from django.views import View
 
@@ -45,17 +45,60 @@ class IngresoView(View):
 
         persona = Persona.objects.first() 
 
-        ingreso = Ingreso(
-            nombre=nombre,
-            persona=persona,
-            fecha=timezone.now(), 
-            monto=monto,
-            descripcion=descripcion,
-            bl_fijo=fijo,
-            categoria = categoria,
-            metodo_pago = metodo_pago,
-        )
-        ingreso.save()
+        # Si es fijo, creo el ingreso, y la recurrencia, sino solo el ingreso
+        if(fijo==True): 
+
+            ingreso = Ingreso(
+                nombre=nombre,
+                persona=persona,
+                fecha=timezone.now(), 
+                monto=monto,
+                descripcion=descripcion,
+                bl_fijo=fijo,
+                categoria = categoria,
+                metodo_pago = metodo_pago,
+            )
+
+            ingreso.save() # Guardo el ingreso para poder obtener su pk y asignarselo a la recurrencia
+
+            frecuencia = request.POST.get('frecuencia')
+            
+            # Convercion de la frecuencia a días
+            if frecuencia == 'diario':
+                dias = 1
+            elif frecuencia == 'semanal':
+                dias = 7
+            elif frecuencia == 'mensual':
+                dias = 30  # 
+            elif frecuencia == 'anual':
+                dias = 365
+            elif frecuencia == 'personalizado':
+                dias = int(request.POST.get('diasPersonalizados', 1))  # Por defecto a 1 si no se proporciona
+            
+            print(frecuencia)
+
+            recurrencia=Recurrencia(
+                fecha_desde=request.POST.get('fechaDesde'),
+                fecha_hasta=request.POST.get('fechaHasta'),
+                frecuencia=dias,
+                ingreso=ingreso,
+                gasto=None,
+                bl_baja=False,
+            )
+            recurrencia.save()
+   
+        else:
+            ingreso = Ingreso(
+                nombre=nombre,
+                persona=persona,
+                fecha=timezone.now(), 
+                monto=monto,
+                descripcion=descripcion,
+                bl_fijo=fijo,
+                categoria = categoria,
+                metodo_pago = metodo_pago,
+            )
+            ingreso.save()
 
         return redirect('registrar_ingreso')
     
@@ -72,6 +115,13 @@ class EliminarIngreso(View):
         if ingreso.persona == persona:
             ingreso.bl_baja = True
             ingreso.save()
+
+           # Si el ingreso es fijo, tambien elimino la recurrencia asociada
+            if(ingreso.bl_fijo == True):
+                recurrencias = Recurrencia.objects.filter(ingreso=ingreso)
+                for recurrencia in recurrencias:
+                    recurrencia.bl_baja = True
+                    recurrencia.save()
             messages.success(request, "Ingreso eliminado con éxito.")
         else:
             messages.error(request, "El ingreso no pertenece a la persona especificada.")

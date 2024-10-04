@@ -60,8 +60,20 @@
 
             <!-- Frecuencia de Ingreso -->
             <div class="col-md-4 mb-3">
-                <label for="frecuencia_ingreso" class="form-label">Frecuencia de Ingreso</label>
-                <input type="text" class="form-control" id="frecuencia_ingreso" name="frecuencia_ingreso">
+                <label for="frecuencia" class="form-label">Frecuencia</label>
+                <select class="form-select" id="frecuencia" name="frecuencia" onchange="togglePersonalizado()">
+                    <option value="">Selecciona una opción</option>
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="anual">Anual</option>
+                    <option value="personalizado">Personalizado (en días)</option>
+                </select>
+            
+                <div id="personalizadoContainer" class="d-none mt-2">
+                    <label for="diasPersonalizados" class="form-label">Número de días:</label>
+                    <input type="number" class="form-control" id="diasPersonalizados" name="diasPersonalizados" placeholder="Introduce el número de días" min="1">
+                </div>
             </div>
         </div>
 
@@ -90,21 +102,36 @@
                 </div>
             </div>
 
-            <!-- Duracion -->
             <div class="col-md-4 mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label for="duracion" class="form-label">Duración</label>
-                    <div class="d-flex align-items-center">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="duracionSwitch" name="duracionSwitch">
+                <div class="row">
+                    <!-- Desde -->
+                    <div class="col my-2"> <!-- Añadido my-2 para margen vertical -->
+                        <div class="d-flex flex-column mb-2">
+                            <label for="fechaDesde" class="form-label">Desde</label>
+                            <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" placeholder="">
                         </div>
-                        <span class="ms-2">Indefinido</span>
+                    </div>
+            
+                    <!-- Hasta -->
+                    <div class="col"> <!-- Añadido my-2 para margen vertical -->
+                        <div class="d-flex flex-column mt-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="fechaHasta" class="form-label mb-0">Hasta</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="indefinidoSwitch" name="indefinidoSwitch">
+                                    <label class="form-check-label" for="indefinidoSwitch">Indefinido</label>
+                                </div>
+                            </div>
+                            <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" placeholder="">
+                        </div>
                     </div>
                 </div>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="duracion" name="duracion" placeholder="">
-                </div>
             </div>
+            
+            
+            
+               
+            
         </div>
 
         <div class="d-grid">
@@ -310,25 +337,47 @@
 <script>
     function toggleFields() {
         const ingresoFijo = document.getElementById('ingreso_fijo');
-        const frecuenciaIngreso = document.getElementById('frecuencia_ingreso');
-        const duracionSwitch = document.getElementById('duracionSwitch');
-        const duracionInput = document.getElementById('duracion');
+        const frecuencia = document.getElementById('frecuencia');
+        const indefinidoSwitch = document.getElementById('indefinidoSwitch');
+        const fechaDesdeInput = document.getElementById('fechaDesde');
+        const fechaHastaInput = document.getElementById('fechaHasta');
 
-        // Habilita o deshabilita los campos según si el checkbox está marcado o no
+        // Si el ingreso es fijo activo los inputs
         if (ingresoFijo.checked) {
-            frecuenciaIngreso.disabled = false;
-            duracionSwitch.disabled = false;
-            duracionInput.disabled = false;
-        } else {
-            frecuenciaIngreso.disabled = true;
-            duracionSwitch.disabled = true;
-            duracionInput.disabled = true;
+            frecuencia.disabled = false;
+            indefinidoSwitch.disabled = false;
+            fechaDesdeInput.disabled = false;
+            fechaHastaInput.disabled = false;
+
+            // Si la duracion es indefinida deshabilito el campo fechaHasta
+            if (indefinidoSwitch.checked) {
+                fechaHastaInput.disabled = true;
+            } else { // si no es indefinido habilito el campo fechaHasta
+                fechaHastaInput.disabled = false;
+            }
+        } else { // si no es fijo desactivo los inputs
+            frecuencia.disabled = true;
+            fechaDesdeInput.disabled = true;
+            fechaHastaInput.disabled = true;
+            indefinidoSwitch.disabled = true;
         }
     }
 
-    // Hace que se ejecute la funcion al cargarse completamente la pagina
-    window.onload = toggleFields;
+    // Maneja el cambio del switch para habilitar o deshabilitar el input de fecha 'fechaHasta'
+    document.getElementById('indefinidoSwitch').addEventListener('change', toggleFields);
 
+
+    function togglePersonalizado() {
+        const frecuencia = document.getElementById('frecuencia');
+        const personalizadoContainer = document.getElementById('personalizadoContainer');
+
+        // Muestra el contenedor de días personalizados solo si se selecciona la opción correspondiente
+        if (frecuencia.value === 'personalizado') {
+            personalizadoContainer.classList.remove('d-none');
+        } else {
+            personalizadoContainer.classList.add('d-none');
+        }
+    }
 
     function abrirModalEditar(ingresoId) {
         fetch(`/ingresos/obtener/${ingresoId}`)
@@ -386,6 +435,11 @@
         const cookieValue = document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
         return cookieValue ? decodeURIComponent(cookieValue) : null;
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFields(); // Inicializa el estado de los campos
+        togglePersonalizado(); // Muestra u oculta el contenedor personalizado
+    });
 
 </script>
 
