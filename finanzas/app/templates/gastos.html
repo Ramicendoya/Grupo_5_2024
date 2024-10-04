@@ -125,6 +125,7 @@
                                         <th>Categoria</th>
                                         <th>Descripcion</th>
                                         <th>Monto</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -133,6 +134,10 @@
                                         <td>{{ gasto.categoria.nombre }}</td>
                                         <td>{{ gasto.observaciones }}</td>
                                         <td>${{ gasto.monto }}</td>
+                                        <td>
+                                           <a href="baja_Gasto"> <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button> </a>
+
+                                        </td>
                                     </tr>
                                     {% empty %}
                                     <!-- Usamos colspan="3" para cubrir las tres columnas -->
@@ -144,7 +149,6 @@
                             </table>
                         </div>
                     </div>
-
             </div>
             
             <div class="tab-pane fade" id="gastos-variables" role="tabpanel" aria-labelledby="gastos-variables-tab">

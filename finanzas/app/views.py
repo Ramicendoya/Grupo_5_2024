@@ -59,3 +59,14 @@ class CategoriaView(View):
         categoria.save()
 
         return redirect('registrar_gasto')
+   
+class EliminarGastoView(View):
+    def post(self, request):        
+        gasto = get_object_or_404(Gasto, id=request.POST.get('id_gasto'))
+        
+        # Modificamos el campo bl_baja del objeto existente
+        gasto.bl_baja = 1
+        gasto.save()
+
+        # Redireccionamos a la vista de registrar_gasto
+        return redirect('registrar_gasto')
