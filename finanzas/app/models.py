@@ -74,7 +74,6 @@ class Recurrencia(models.Model):
     fecha_desde = models.DateField()
     fecha_hasta = models.DateField(null=True, blank=True)
     frecuencia = models.IntegerField()
-    fijo = models.BooleanField(default=False)
     gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE, null=True, blank=True)
     ingreso = models.ForeignKey(Ingreso, on_delete=models.CASCADE, null=True, blank=True)
     bl_baja = models.BooleanField(default=False)
