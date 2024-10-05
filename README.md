@@ -1,5 +1,18 @@
 # Grupo_5_2024
 
+# Integrantes
+
+Manuel Morullo
+
+Ramiro Cendoya
+
+Candela Abregu
+
+Maria del Pilar Acosta
+
+Gustavo Senna
+
+
 # Instalar dependencias:
 Ejecutar en la terminal:
 
