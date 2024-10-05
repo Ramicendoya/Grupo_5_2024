@@ -177,6 +177,7 @@ class EditarIngresoView(View):
         ingreso.monto = request.POST.get('monto')
         ingreso.bl_fijo = 'tipo_ingreso' in request.POST
         categoria_id = request.POST.get('categoria')
+        print(categoria_id)
         ingreso.categoria = get_object_or_404(Categoria, id=categoria_id)
         ingreso.metodo_pago = request.POST.get('metodo_pago')
 

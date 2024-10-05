@@ -176,13 +176,10 @@
                     </button>
 
                     <!-- Eliminar -->
-                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" >
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
+                        <i class="bi bi-trash"></i>
+                    </button>
+
                 </div>
             </div>
             {% empty %}
@@ -209,13 +206,9 @@
                     </button>
                     
                     <!-- Eliminar -->
-                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" >
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
             {% empty %}
@@ -320,7 +313,7 @@
     </div>
 </div>
 
- <!-- Modal Confirmación de Eliminacion --></div>
+ <!-- Modal de Confirmación de Eliminacion --></div>
  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -468,6 +461,10 @@
         toggleFields(); // Inicializa el estado de los campos
         togglePersonalizado(); // Muestra u oculta el contenedor personalizado
     });
+    
+    function setDeleteFormAction(url) {
+            document.getElementById('deleteForm').action = url;
+    }
 
 </script>
 
