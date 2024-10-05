@@ -78,7 +78,7 @@
               <a class="nav-link" href="{% url 'registrar_gasto' %}">Gastos</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ingresos' %}">Ingresos</a>
+                <a class="nav-link" href="{% url 'registrar_ingreso' %}">Ingresos</a>
               </li>
             <!--<li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -109,7 +109,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
-<footer class="bg-dark text-white">
+<footer id="footer" class="bg-dark text-white">
     <div class="row">
         <div class="col-6 text-start">
             <p>&copy; UTN-FRLP Finanzas</p>
@@ -122,3 +122,9 @@
 
 
 </html>
+
+<style> 
+  #footer {
+    position: relative;
+  } 
+</style>

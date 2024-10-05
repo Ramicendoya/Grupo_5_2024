@@ -14,7 +14,7 @@ class Persona(models.Model):
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     detalle = models.TextField(null=True, blank=True)
-    persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, null=True)
     bl_baja = models.BooleanField(default=False)
     bl_general = models.BooleanField(default=False)
 
@@ -31,6 +31,7 @@ class Ingreso(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     bl_fijo = models.BooleanField(default=False)
     bl_baja = models.BooleanField(default=False)
+    metodo_pago = models.TextField(null=False, blank=False)
 
     def __str__(self):
         return self.nombre
@@ -73,7 +74,6 @@ class Recurrencia(models.Model):
     fecha_desde = models.DateField()
     fecha_hasta = models.DateField(null=True, blank=True)
     frecuencia = models.IntegerField()
-    fijo = models.BooleanField(default=False)
     gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE, null=True, blank=True)
     ingreso = models.ForeignKey(Ingreso, on_delete=models.CASCADE, null=True, blank=True)
     bl_baja = models.BooleanField(default=False)
