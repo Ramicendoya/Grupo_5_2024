@@ -176,11 +176,10 @@
                     </button>
 
                     <!-- Eliminar -->
-                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                    </form>
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
+                        <i class="bi bi-trash"></i>
+                    </button>
+
                 </div>
             </div>
             {% empty %}
@@ -205,12 +204,11 @@
                         onclick="abrirModalEditar('{{ingreso.id}}')">
                         <i class="bi bi-pencil"></i>
                     </button>
-
-                    <form action="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" method="post"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                    </form>
+                    
+                    <!-- Eliminar -->
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
             {% empty %}
@@ -315,6 +313,27 @@
     </div>
 </div>
 
+ <!-- Modal de Confirmación de Eliminacion --></div>
+ <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro de que desea eliminar este ingreso?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" action="" method="post" style="display: inline">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
     body {
@@ -442,6 +461,10 @@
         toggleFields(); // Inicializa el estado de los campos
         togglePersonalizado(); // Muestra u oculta el contenedor personalizado
     });
+    
+    function setDeleteFormAction(url) {
+            document.getElementById('deleteForm').action = url;
+    }
 
 </script>
 
