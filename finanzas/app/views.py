@@ -22,7 +22,8 @@ class GastoView(View):
         context = {
             'gastos_fijos': gastos_fijos,
             'gastos_variables': gastos_variables,
-            'categorias': categorias
+            'categorias': categorias,
+            'origen': 'gasto',
         }
         
         return render(request, 'gastos.html', context)
@@ -60,6 +61,7 @@ class IngresoView(View):
             'ingresos_fijos': ingresos_fijos,
             'ingresos_variables': ingresos_variables,
             'categorias': categorias,
+            'origen': 'ingreso',
         }
         return render(request, 'ingresos.html', context)
 
@@ -207,7 +209,7 @@ class ObtenerIngresoView(View):
 
 class CategoriaView(View):
 
-   def post(self, request):        
+   def post(self, request,origen):        
 
         categoria = Categoria(
             nombre=request.POST.get('nombre_categoria'),
@@ -217,7 +219,15 @@ class CategoriaView(View):
         )
         categoria.save()
 
-        return redirect('registrar_gasto')
+        # Redirige según el valor de origen
+        if origen == 'gasto':
+            return redirect('registrar_gasto')
+        elif origen == 'ingreso':
+            return redirect('registrar_ingreso')
+        else:
+            # Si el origen no es válido
+            return redirect('home')
+
    
 class EliminarGastoView(View):
     def post(self, request):        

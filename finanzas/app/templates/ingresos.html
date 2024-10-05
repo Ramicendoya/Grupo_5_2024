@@ -231,23 +231,24 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{% url 'cargar_categoria' %}">
+                <form method="POST" action="{% url 'cargar_categoria' origen=origen %}">
                     {% csrf_token %}
                     <div class="row">
                         <div class="d-flex align-items-center">
-                            <!--Nombre categoria-->
+                            <!-- Nombre categoria -->
                             <div class="col-md-12 mb-3">
                                 <label for="id_categoria" class="form-label">Nombre categoria *</label>
-                                <input type="text" class="form-control" id="id_categoria" name="nombre_categoria"
-                                    required>
+                                <input type="text" class="form-control" id="id_categoria" name="nombre_categoria" required>
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
+                            <!-- Detalle categoria -->
                             <div class="col-md-12 mb-3">
                                 <label for="detalle_categoria" class="form-label">Detalle</label>
                                 <input type="text" class="form-control" id="detalle_categoria" name="detalle_categoria">
                             </div>
                         </div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="submit" class="btn btn-primary">Cargar</button>
@@ -258,6 +259,7 @@
         </div>
     </div>
 </div>
+
 
 
 

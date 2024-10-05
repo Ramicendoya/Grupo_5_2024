@@ -207,7 +207,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-            <form method="POST" action="{% url 'cargar_categoria' %}">
+            <form method="POST" action="{% url 'cargar_categoria' origen=origen %}">
                     {% csrf_token %}
                     <div class="row">
                         <div class="d-flex align-items-center">
