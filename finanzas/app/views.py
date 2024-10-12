@@ -240,3 +240,10 @@ class EliminarGastoView(View):
 
         # Redireccionamos a la vista de registrar_gasto
         return redirect('registrar_gasto')
+
+
+# Reporte Financiero
+
+class ReporteFinancieroView(View):
+    def get(self, request):
+        return render (request, 'reporte_financiero.html')
