@@ -1,10 +1,14 @@
+from datetime import date
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db.models import F, Sum, FloatField
 from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto
 from django.utils import timezone
 from django.views import View
+from decimal import Decimal
 
 
 def home(request):
@@ -246,4 +250,65 @@ class EliminarGastoView(View):
 
 class ReporteFinancieroView(View):
     def get(self, request):
-        return render (request, 'reporte_financiero.html')
+        # Busco la persona (reemplaza esto por la persona autenticada en la aplicación)
+        persona = get_object_or_404(Persona, pk=1)
+
+        # Obtengo la lista de ingresos y gastos que no estén dados de baja
+        ingresos = Ingreso.objects.filter(bl_baja=False, persona=persona)
+        gastos = Gasto.objects.filter(bl_baja=False, persona=persona)
+
+        # Obtengo la lista de categorías que no estén dadas de baja
+        categorias = Categoria.objects.filter(bl_baja=False)
+
+        # Calculo el monto total de ingresos
+        total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')  # Asegúrate de usar Decimal
+
+        # Valido que el monto total no sea cero para evitar división por cero
+        if total_global > 0:
+            # Filtro y calculo total de ingresos por categoría y porcentaje
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)  # Usar Decimal aquí
+                )
+            )
+        else:
+            # Si el total global es cero, asigno porcentaje de 0 para todas las categorías
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=Decimal('0.00')  # Asegúrate de usar Decimal aquí también
+                )
+            )
+
+        # Función para serializar objetos que no son JSON serializables
+        def serialize_value(value):
+            if isinstance(value, Decimal):
+                return float(value)  # Convierte Decimal a float
+            if isinstance(value, date):
+                return value.isoformat()  # Convierte date a cadena en formato ISO
+            return value  # Retorna el valor tal como está
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'ingresos': list(ingresos.values()),  # Convierte a lista
+            'gastos': list(gastos.values()),
+            'categorias': list(categorias.values()),
+            'ingresos_por_categoria': list(ingresos_por_categoria),
+        }
+
+        # Serializa los valores del contexto
+        for key in context:
+            if isinstance(context[key], list):
+                for item in context[key]:
+                    for k, v in item.items():
+                        item[k] = serialize_value(v)
+
+        # Convierte el contexto a JSON
+        context_json = json.dumps(context)
+        return render(request, 'reporte_financiero.html', {'context': context_json})
+
