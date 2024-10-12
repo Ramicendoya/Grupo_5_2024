@@ -9,7 +9,6 @@
             <p class="title" style="font-size: 24px; font-weight: bold;">Informe Financiero</p>
         </div>
         
-        
         <!-- Selectores -->
         <div class="col-12 mt-2">
             <div class="d-flex justify-content-between align-items-center">          
@@ -67,32 +66,43 @@
     </div>
 </div>
 
-
 <style>
-    #detalle_categoria{
+    #detalle_categoria {
         margin-top: 8%;
     }
 </style>
 
-
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script>
+    var contexto = JSON.parse('{{ context|escapejs }}');
+    var ingresos = contexto.ingresos;
+    var gastos = contexto.gastos;
+    var ingresosPorCategoria = contexto.ingresos_por_categoria; // Asegúrate de que coincida con el contexto
+
+    console.log(contexto); // Verifica el contenido del contexto
+
     // Configuración del gráfico de Google Charts
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(drawChart);
 
     function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Categoría', 'Porcentaje'],
-            ['Compras', 40.30],
-            ['Deuda', 23.99],
-            ['Vivienda', 20.31],
-            ['Belleza', 15.40]
-        ]);
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Categoría');
+        data.addColumn('number', 'Porcentaje');
+        data.addColumn({type: 'string', role: 'tooltip', p: {'html': true}});
+
+        // Verifica que ingresosPorCategoria no sea undefined y sea un array
+        if (Array.isArray(ingresosPorCategoria)) {
+            ingresosPorCategoria.forEach(function(item) {
+                data.addRow([item.categoria, item.porcentaje, 'Monto: $' + item.total]);
+            });
+        } else {
+            console.error("ingresosPorCategoria no es un array:", ingresosPorCategoria);
+        }
 
         var options = {
-            title: 'Distribución de Gastos',
+            title: 'Distribución de Ingresos',
             pieSliceText: 'percentage',
             slices: {
                 0: { color: '#FF6384' },
@@ -100,7 +110,8 @@
                 2: { color: '#FFCE56' },
                 3: { color: '#4BC0C0' }
             },
-            legend: { position: 'right', alignment: 'center' }
+            legend: { position: 'right', alignment: 'center' },
+            tooltip: { isHtml: true }
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('google-piechart'));
@@ -112,16 +123,18 @@
             if (selectedItem) {
                 var category = data.getValue(selectedItem.row, 0); // Obtiene la categoría seleccionada
                 var percentage = data.getValue(selectedItem.row, 1); // Obtiene el porcentaje
+                var monto = data.getValue(selectedItem.row, 2); // Obtiene el monto (tooltip)
 
                 // Actualiza la sección de detalles con información relevante
                 document.getElementById('detalle_categoria').innerHTML = `
                     <h5>Detalles de la Categoría</h5>
                     <p>Categoría: ${category}</p>
                     <p>Porcentaje: ${percentage}%</p>
-                    <p>Monto: $1000%</p>
+                    <p>${monto}</p>
                 `;
             }
         });
     }
 </script>
+
 {% endblock %}
