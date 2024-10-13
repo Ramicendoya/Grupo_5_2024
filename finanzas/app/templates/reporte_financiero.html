@@ -131,7 +131,7 @@
             var percentage = data.getValue(selectedItem.row, 1); // Obtiene el porcentaje
             var tooltipContent = data.getValue(selectedItem.row, 2); // Obtiene el monto (tooltip)
 
-            // Extrae el monto desde el tooltipContent (por si quieres personalizarlo más)
+            // Extrae el monto desde el tooltipContent
             var monto = tooltipContent.match(/\$([0-9,]+)/)[0];
 
             // Actualiza el div de detalles con la información seleccionada
@@ -139,7 +139,7 @@
                 <h5>Detalles de la Categoría</h5>
                 <p><strong>Categoría:</strong> ${category}</p>
                 <p><strong>Porcentaje:</strong> ${percentage.toFixed(2)}%</p>
-                <p><strong>${monto}</strong></p>
+                <p><strong>Monto:</strong> ${monto}</p>
             `;
         }
     });
