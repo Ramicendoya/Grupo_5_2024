@@ -26,21 +26,19 @@
         </div>
 
         <!-- Meses seleccionables -->
-        <div class="col-12 mt-3">
-            <div class="d-flex justify-content-between">
-                <a href="#" class="text-dark">Enero</a>
-                <a href="#" class="text-dark">Febrero</a>
-                <a href="#" class="text-dark">Marzo</a>
-                <a href="#" class="text-dark">Abril</a>
-                <a href="#" class="text-dark">Mayo</a>
-                <a href="#" class="text-dark">Junio</a>
-                <a href="#" class="text-dark">Julio</a>
-                <a href="#" class="text-dark">Agosto</a>
-                <a href="#" class="text-dark">Septiembre</a>
-                <a href="#" class="text-dark"><strong>Octubre</strong></a>
-                <a href="#" class="text-dark">Noviembre</a>
-                <a href="#" class="text-dark">Diciembre</a>
-            </div>
+        <div class="btn-group mt-3" role="group" aria-label="Meses">
+            <button type="button" class="btn btn-outline-primary">Enero</button>
+            <button type="button" class="btn btn-outline-primary">Febrero</button>
+            <button type="button" class="btn btn-outline-primary">Marzo</button>
+            <button type="button" class="btn btn-outline-primary">Abril</button>
+            <button type="button" class="btn btn-outline-primary">Mayo</button>
+            <button type="button" class="btn btn-outline-primary">Junio</button>
+            <button type="button" class="btn btn-outline-primary">Julio</button>
+            <button type="button" class="btn btn-outline-primary">Agosto</button>
+            <button type="button" class="btn btn-outline-primary">Septiembre</button>
+            <button type="button" class="btn btn-outline-primary">Octubre</button>
+            <button type="button" class="btn btn-outline-primary">Noviembre</button>
+            <button type="button" class="btn btn-outline-primary">Diciembre</button>
         </div>
         
         <div class="col-12 d-flex mt-4">
@@ -52,7 +50,7 @@
             <!-- Detalle Categoria -->
             <div class="ml-4" id="detalle_categoria">
                 <h5>Detalles de la Categoría</h5>
-                <p>Aquí se mostrarán los detalles de la categoría seleccionada.</p>
+                <p>Selecciona una categoria para ver sus detalles.</p>
             </div>
             
             <div class="alert alert-warning" role="alert" id="mensaje-ingresos">
@@ -74,6 +72,10 @@
     #detalle_categoria {
         margin-top: 8%;
     }
+    .active {
+    background-color: #007bff; /* Color de fondo para el botón seleccionado */
+    color: white; /* Color del texto para que contraste */
+}
 </style>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -84,7 +86,6 @@
     var gastos = contexto.gastos;
     var ingresosPorCategoria = contexto.ingresos_por_categoria;
 
-    console.log(contexto); // Verifica el contenido del contexto
 
     // Configuración del gráfico de Google Charts
     google.charts.load('current', {'packages':['corechart']});
@@ -149,37 +150,51 @@
     });
 }
 
-// Captura el año actual del usuario
-const anioActual = new Date().getFullYear();
+// Captura todos los botones de los meses
+const botonesMeses = document.querySelectorAll('.btn-group .btn');
 
-// Captura todos los enlaces de los meses
-const enlacesMeses = document.querySelectorAll('.col-12 a');
+// Mapea los nombres de los meses a sus valores numéricos (1 - Enero, 12 - Diciembre)
+const meses = {
+    'Enero': 1,
+    'Febrero': 2,
+    'Marzo': 3,
+    'Abril': 4,
+    'Mayo': 5,
+    'Junio': 6,
+    'Julio': 7,
+    'Agosto': 8,
+    'Septiembre': 9,
+    'Octubre': 10,
+    'Noviembre': 11,
+    'Diciembre': 12
+};
 
-// Itera sobre cada enlace de mes y añade un evento para capturar el clic
-enlacesMeses.forEach(enlace => {
-    enlace.addEventListener('click', function(event) {
-        event.preventDefault();  // Prevenir el comportamiento por defecto del enlace
+// Obtiene el mes desde la URL
+const urlParts = window.location.pathname.split('/');
+const mesUrl = parseInt(urlParts[urlParts.length - 2]);
+
+
+// Establece el botón activo según el mes en la URL
+if (mesUrl) {
+    const mesSeleccionado = Object.keys(meses).find(mes => meses[mes] === mesUrl);
+    if (mesSeleccionado) {
+        const botonActivo = Array.from(botonesMeses).find(btn => btn.textContent.trim() === mesSeleccionado);
+        if (botonActivo) {
+            botonActivo.classList.add('active');
+        }
+    }
+}
+
+// Itera sobre cada botón de mes y añade un evento para capturar el clic
+botonesMeses.forEach(boton => {
+    boton.addEventListener('click', function(event) {
+        event.preventDefault();  // Prevenir el comportamiento por defecto del botón
         const mesSeleccionado = this.textContent.trim();  // Captura el texto del mes
-
-        // Mapea los nombres de los meses a sus valores numéricos (1 - Enero, 12 - Diciembre)
-        const meses = {
-            'Enero': 1,
-            'Febrero': 2,
-            'Marzo': 3,
-            'Abril': 4,
-            'Mayo': 5,
-            'Junio': 6,
-            'Julio': 7,
-            'Agosto': 8,
-            'Septiembre': 9,
-            'Octubre': 10,
-            'Noviembre': 11,
-            'Diciembre': 12
-        };
-
         const mesNumerico = meses[mesSeleccionado];  // Obtén el valor numérico del mes
 
         if (mesNumerico) {
+            // Obtiene el año actual (puedes ajustar esto según tu lógica)
+            const anioActual = new Date().getFullYear();
             // Redirige a la URL con el formato deseado
             const url = `/ver/reporteFinanciero/${anioActual}/${mesNumerico}/`;
             window.location.href = url;  // Redirige a la nueva URL
