@@ -87,54 +87,65 @@
     google.charts.setOnLoadCallback(drawChart);
 
     function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Categoría');
-        data.addColumn('number', 'Porcentaje');
-        data.addColumn({type: 'string', role: 'tooltip', p: {'html': true}});
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Categoría');
+    data.addColumn('number', 'Porcentaje');
+    data.addColumn({type: 'string', role: 'tooltip', p: {'html': true}});
 
-        // Verifica que ingresosPorCategoria no sea undefined y sea un array
-        if (Array.isArray(ingresosPorCategoria)) {
-            ingresosPorCategoria.forEach(function(item) {
-                data.addRow([item.categoria, item.porcentaje, 'Monto: $' + item.total]);
-            });
-        } else {
-            console.error("ingresosPorCategoria no es un array:", ingresosPorCategoria);
-        }
-
-        var options = {
-            title: 'Distribución de Ingresos',
-            pieSliceText: 'percentage',
-            slices: {
-                0: { color: '#FF6384' },
-                1: { color: '#36A2EB' },
-                2: { color: '#FFCE56' },
-                3: { color: '#4BC0C0' }
-            },
-            legend: { position: 'right', alignment: 'center' },
-            tooltip: { isHtml: true }
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('google-piechart'));
-        chart.draw(data, options);
-
-        // Captura de clic en la leyenda
-        google.visualization.events.addListener(chart, 'select', function() {
-            var selectedItem = chart.getSelection()[0];
-            if (selectedItem) {
-                var category = data.getValue(selectedItem.row, 0); // Obtiene la categoría seleccionada
-                var percentage = data.getValue(selectedItem.row, 1); // Obtiene el porcentaje
-                var monto = data.getValue(selectedItem.row, 2); // Obtiene el monto (tooltip)
-
-                // Actualiza la sección de detalles con información relevante
-                document.getElementById('detalle_categoria').innerHTML = `
-                    <h5>Detalles de la Categoría</h5>
-                    <p>Categoría: ${category}</p>
-                    <p>Porcentaje: ${percentage}%</p>
-                    <p>${monto}</p>
-                `;
-            }
+    // Verifica que ingresosPorCategoria no sea undefined y sea un array
+    if (Array.isArray(ingresosPorCategoria)) {
+        ingresosPorCategoria.forEach(function(item) {
+            var tooltipContent = `
+                <div>
+                    <strong>Categoría: ${item.categoria__nombre}</strong><br>
+                    Monto: $${item.total}<br>
+                    Porcentaje: ${item.porcentaje.toFixed(2)}%
+                </div>`;
+            data.addRow([item.categoria__nombre, item.porcentaje, tooltipContent]);
         });
+    } else {
+        console.error("ingresosPorCategoria no es un array:", ingresosPorCategoria);
     }
+
+    var options = {
+        title: 'Distribución de Ingresos',
+        pieSliceText: 'percentage',
+        slices: {
+            0: { color: '#FF6384' },
+            1: { color: '#36A2EB' },
+            2: { color: '#FFCE56' },
+            3: { color: '#4BC0C0' }
+        },
+        legend: { position: 'right', alignment: 'center' },
+        tooltip: { isHtml: true }
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('google-piechart'));
+    chart.draw(data, options);
+
+    // Captura de clic en el gráfico o la leyenda
+    google.visualization.events.addListener(chart, 'select', function() {
+        var selectedItem = chart.getSelection()[0];
+        if (selectedItem) {
+            var category = data.getValue(selectedItem.row, 0); // Obtiene la categoría seleccionada
+            var percentage = data.getValue(selectedItem.row, 1); // Obtiene el porcentaje
+            var tooltipContent = data.getValue(selectedItem.row, 2); // Obtiene el monto (tooltip)
+
+            // Extrae el monto desde el tooltipContent (por si quieres personalizarlo más)
+            var monto = tooltipContent.match(/\$([0-9,]+)/)[0];
+
+            // Actualiza el div de detalles con la información seleccionada
+            document.getElementById('detalle_categoria').innerHTML = `
+                <h5>Detalles de la Categoría</h5>
+                <p><strong>Categoría:</strong> ${category}</p>
+                <p><strong>Porcentaje:</strong> ${percentage.toFixed(2)}%</p>
+                <p><strong>${monto}</strong></p>
+            `;
+        }
+    });
+}
+
+
 </script>
 
 {% endblock %}
