@@ -104,6 +104,13 @@
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script>
+
+    // Captura de los botones de ciclo
+    const btnMensual = document.getElementById('btn-mensual');
+    const btnAnual = document.getElementById('btn-anual');
+
+
+
     var contexto = JSON.parse('{{ context|escapejs }}');
     var ingresos = contexto.ingresos;
     var gastos = contexto.gastos;
@@ -197,8 +204,8 @@ const urlParts = window.location.pathname.split('/');
 const mesUrl = parseInt(urlParts[urlParts.length - 2]);
 
 
-// Establece el botón activo según el mes en la URL
-if (mesUrl) {
+// Establece el botón activo de los Meses según el mes en la URL
+if(mesUrl){
     const mesSeleccionado = Object.keys(meses).find(mes => meses[mes] === mesUrl);
     if (mesSeleccionado) {
         const botonActivo = Array.from(botonesMeses).find(btn => btn.textContent.trim() === mesSeleccionado);
@@ -208,6 +215,18 @@ if (mesUrl) {
     }
 }
 
+// Si el Reporte es Anual desactivo botones de meses y Activo boton Anual
+if(mesUrl==0){
+    btnMensual.classList.remove('active') // saco clase active del boton mensual
+    toggleMonthButtons(true); // Desactiva los botones de meses
+
+    btnAnual.classList.add('active') // agrego clase active al boton anual
+}
+// si el Reporte es Mensual Activo boton Mensual
+if(mesUrl>=1 && mesUrl<=12)
+{
+    btnMensual.classList.add('active');
+}
 // Itera sobre cada botón de mes y añade un evento para capturar el clic
 botonesMeses.forEach(boton => {
     boton.addEventListener('click', function(event) {
@@ -270,9 +289,6 @@ botonesCiclo.forEach(boton => {
 });
 
 
-// Captura de los botones de ciclo
-const btnMensual = document.getElementById('btn-mensual');
-const btnAnual = document.getElementById('btn-anual');
 
 // Función para activar/desactivar botones de meses
 function toggleMonthButtons(isAnnual) {
@@ -282,14 +298,13 @@ function toggleMonthButtons(isAnnual) {
     });
 }
 
-// Evento para los botones de ciclo
+// Evento para boton Mensual
 btnMensual.addEventListener('click', function() {
     toggleMonthButtons(false); // Activa los botones de meses
+    btnAnual.classList.remove('active'); // Despinta el botón anual
 });
-
+// Evento para boton Anual
 btnAnual.addEventListener('click', function() {
-    btnMensual.classList.remove('active') // saco clase active del boton mensual
-    toggleMonthButtons(true); // Desactiva los botones de meses
     const anioActual = new Date().getFullYear();
     const url = `/ver/reporteFinanciero/${anioActual}/0/`;
             window.location.href = url;  // Redirige a la nueva URL
