@@ -22,5 +22,5 @@ urlpatterns = [
     path('ingresos/editar/<int:ingreso_pk>/', EditarIngresoView.as_view(), name='editar_ingreso'),
 
     # Reporte Financiero
-    path('ver/reporteFinanciero/', ReporteFinancieroView.as_view(), name='reporte_financiero'),
+   path('ver/reporteFinanciero/<int:anio>/<int:mes>/', ReporteFinancieroView.as_view(), name='reporte_financiero'),
 ]
