@@ -42,21 +42,25 @@
                 <a href="#" class="text-dark">Diciembre</a>
             </div>
         </div>
-
+        
         <div class="col-12 d-flex mt-4">
             <!-- Gráfico de Google Charts -->
             <div id="google-chart-container" class="flex-fill" style="flex: 1;">
                 <div id="google-piechart" style="width: 100%; height: 600px;"></div>
             </div>
-
+        
             <!-- Detalle Categoria -->
             <div class="ml-4" id="detalle_categoria">
                 <h5>Detalles de la Categoría</h5>
                 <p>Aquí se mostrarán los detalles de la categoría seleccionada.</p>
             </div>
+            
+            <div class="alert alert-warning" role="alert" id="mensaje-ingresos">
+                No hay ingresos registrados para este mes.
+            </div>
         </div>
 
-        <!-- Leyenda personalizada -->
+        <!-- Leyenda del gráfico -->
         <div class="ml-4 d-flex flex-column align-items-start" style="margin-left: 20px;">
             <span style="color: #FF6384;"><i class="bi bi-cart"></i> Compras</span>
             <span style="color: #36A2EB;"><i class="bi bi-cash-stack"></i> Deuda</span>
@@ -78,7 +82,7 @@
     var contexto = JSON.parse('{{ context|escapejs }}');
     var ingresos = contexto.ingresos;
     var gastos = contexto.gastos;
-    var ingresosPorCategoria = contexto.ingresos_por_categoria; // Asegúrate de que coincida con el contexto
+    var ingresosPorCategoria = contexto.ingresos_por_categoria;
 
     console.log(contexto); // Verifica el contenido del contexto
 
@@ -145,6 +149,58 @@
     });
 }
 
+// Captura el año actual del usuario
+const anioActual = new Date().getFullYear();
+
+// Captura todos los enlaces de los meses
+const enlacesMeses = document.querySelectorAll('.col-12 a');
+
+// Itera sobre cada enlace de mes y añade un evento para capturar el clic
+enlacesMeses.forEach(enlace => {
+    enlace.addEventListener('click', function(event) {
+        event.preventDefault();  // Prevenir el comportamiento por defecto del enlace
+        const mesSeleccionado = this.textContent.trim();  // Captura el texto del mes
+
+        // Mapea los nombres de los meses a sus valores numéricos (1 - Enero, 12 - Diciembre)
+        const meses = {
+            'Enero': 1,
+            'Febrero': 2,
+            'Marzo': 3,
+            'Abril': 4,
+            'Mayo': 5,
+            'Junio': 6,
+            'Julio': 7,
+            'Agosto': 8,
+            'Septiembre': 9,
+            'Octubre': 10,
+            'Noviembre': 11,
+            'Diciembre': 12
+        };
+
+        const mesNumerico = meses[mesSeleccionado];  // Obtén el valor numérico del mes
+
+        if (mesNumerico) {
+            // Redirige a la URL con el formato deseado
+            const url = `/ver/reporteFinanciero/${anioActual}/${mesNumerico}/`;
+            window.location.href = url;  // Redirige a la nueva URL
+        }
+    });
+});
+
+// Comprobar si hay ingresos
+var contexto = JSON.parse('{{ context|escapejs }}');
+var hayIngresos = contexto.hay_ingresos;
+
+// Lógica para mostrar/ocultar elementos
+if (hayIngresos) {
+    document.getElementById('google-chart-container').style.display = 'block';
+    document.getElementById('detalle_categoria').style.display = 'block'; // Mostrar detalle si hay ingresos
+    document.getElementById('mensaje-ingresos').style.display = 'none';  // Ocultar mensaje si hay ingresos
+} else {
+    document.getElementById('google-chart-container').style.display = 'none';  // Ocultar gráfico si no hay ingresos
+    document.getElementById('detalle_categoria').style.display = 'none'; // Ocultar detalle si no hay ingresos
+    document.getElementById('mensaje-ingresos').style.display = 'block';  // Mostrar mensaje
+}
 
 </script>
 
