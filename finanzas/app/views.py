@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.db.models import F, Sum, FloatField
+from django.db.models import Sum
 from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto
 from django.utils import timezone
 from django.views import View
@@ -249,7 +249,7 @@ class EliminarGastoView(View):
 # Reporte Financiero
 
 class ReporteFinancieroView(View):
-    def get(self, request):
+    def get(self, request, anio=None, mes=None):
         # Busco la persona (reemplaza esto por la persona autenticada en la aplicación)
         persona = get_object_or_404(Persona, pk=1)
 
@@ -257,14 +257,28 @@ class ReporteFinancieroView(View):
         ingresos = Ingreso.objects.filter(bl_baja=False, persona=persona)
         gastos = Gasto.objects.filter(bl_baja=False, persona=persona)
 
+        # Filtrar por año si se seleccionó uno
+        if anio:
+            ingresos = ingresos.filter(fecha__year=anio)
+
+        # Filtrar por mes si se seleccionó uno
+        if mes:
+            ingresos = ingresos.filter(fecha__month=mes)
+
         # Obtengo la lista de categorías que no estén dadas de baja
         categorias = Categoria.objects.filter(bl_baja=False)
 
         # Calculo el monto total de ingresos
         total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')  # Asegúrate de usar Decimal
 
-        # Valido que el monto total no sea cero para evitar división por cero
+        
+        
+
+        # Verifico si hay ingresos para calcular los porcentajes
         if total_global > 0:
+            
+            hay_ingresos = True
+
             # Filtro y calculo total de ingresos por categoría y porcentaje
             ingresos_por_categoria = (
                 ingresos
@@ -275,15 +289,9 @@ class ReporteFinancieroView(View):
                 )
             )
         else:
-            # Si el total global es cero, asigno porcentaje de 0 para todas las categorías
-            ingresos_por_categoria = (
-                ingresos
-                .values('categoria__nombre')
-                .annotate(
-                    total=Sum('monto'),
-                    porcentaje=Decimal('0.00')  # Asegúrate de usar Decimal aquí también
-                )
-            )
+            # Si no hay ingresos, asigno un QuerySet vacío
+            ingresos_por_categoria = []
+            hay_ingresos = False 
 
         # Función para serializar objetos que no son JSON serializables
         def serialize_value(value):
@@ -299,6 +307,7 @@ class ReporteFinancieroView(View):
             'gastos': list(gastos.values()),
             'categorias': list(categorias.values()),
             'ingresos_por_categoria': list(ingresos_por_categoria),
+            'hay_ingresos': hay_ingresos,  # Agrega el mensaje al contexto
         }
 
         # Serializa los valores del contexto
