@@ -262,21 +262,24 @@ class ReporteFinancieroView(View):
             ingresos = ingresos.filter(fecha__year=anio)
 
         # Filtrar por mes si se seleccionó uno
-        if mes:
+        if mes > 0 and mes <= 12:
             ingresos = ingresos.filter(fecha__month=mes)
-
-        # Obtengo la lista de categorías que no estén dadas de baja
-        categorias = Categoria.objects.filter(bl_baja=False)
+        elif mes != 0:
+            # Si mes es distinto de cero, significa que no se seleccionó ni "Reporte Anual" (mes=0) ni ningun mes correcto
+            error = "Mes incorrecto"
+            context = {
+                'error': error,
+            }
+            return render(request, 'reporte_financiero.html', {'context': context})
 
         # Calculo el monto total de ingresos
-        total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')  # Asegúrate de usar Decimal
+        total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
 
-        
-        
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()  
 
         # Verifico si hay ingresos para calcular los porcentajes
         if total_global > 0:
-            
             hay_ingresos = True
 
             # Filtro y calculo total de ingresos por categoría y porcentaje
@@ -285,11 +288,18 @@ class ReporteFinancieroView(View):
                 .values('categoria__nombre')
                 .annotate(
                     total=Sum('monto'),
-                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)  # Usar Decimal aquí
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)
                 )
             )
+            # Obtengo los nombres de las categorías que tienen ingresos
+            categorias_de_ingresos = [ingreso['categoria__nombre'] for ingreso in ingresos_por_categoria]
+
+            # Crear un QuerySet que obtenga directamente las categorías de ingresos
+            if categorias_de_ingresos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_ingresos, bl_baja=False)
+
+        # Si no hay ingresos, asigno un QuerySet vacío
         else:
-            # Si no hay ingresos, asigno un QuerySet vacío
             ingresos_por_categoria = []
             hay_ingresos = False 
 
@@ -303,11 +313,11 @@ class ReporteFinancieroView(View):
 
         # Creo el contexto para pasarlo al template
         context = {
-            'ingresos': list(ingresos.values()),  # Convierte a lista
+            'ingresos': list(ingresos.values()),  
             'gastos': list(gastos.values()),
-            'categorias': list(categorias.values()),
+            'categorias': list(categorias.values()),  # Aquí siempre hay un valor
             'ingresos_por_categoria': list(ingresos_por_categoria),
-            'hay_ingresos': hay_ingresos,  # Agrega el mensaje al contexto
+            'hay_ingresos': hay_ingresos,
         }
 
         # Serializa los valores del contexto
@@ -320,4 +330,5 @@ class ReporteFinancieroView(View):
         # Convierte el contexto a JSON
         context_json = json.dumps(context)
         return render(request, 'reporte_financiero.html', {'context': context_json})
+
 

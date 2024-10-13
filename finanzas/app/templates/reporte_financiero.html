@@ -9,24 +9,30 @@
             <p class="title" style="font-size: 24px; font-weight: bold;">Informe Financiero</p>
         </div>
         
-        <!-- Selectores -->
+        <!-- Selector de Gastos o Ingresos-->
         <div class="col-12 mt-2">
-            <div class="d-flex justify-content-between align-items-center">          
-                <!-- Selector de Gastos o Ingresos-->
-                <div class="btn-group" role="group" aria-label="GastosIngresos">
-                    <button type="button" class="btn btn-outline-secondary">Gastos</button>
-                    <button type="button" class="btn btn-outline-secondary">Ingresos</button>
+            <div class="d-flex align-items-center">   
+                <h6>Seleccione que informe desea ver:</h6>
+                <div class="btn-group selector" role="group" aria-label="GastosIngresos">
+                    <button type="button" class="btn btn-outline-primary">Gastos</button>
+                    <button type="button" class="btn btn-outline-primary">Ingresos</button>
                 </div>
-                <!-- Selector de Mes o Año -->
-                <div class="btn-group" role="group" aria-label="MesAño">
-                    <button type="button" class="btn btn-outline-secondary">Mes</button>
-                    <button type="button" class="btn btn-outline-secondary">Año</button>
+            </div>
+        </div>
+
+        <!-- Selector de Ciclo Mensual o Anual -->
+        <div class="col-12 mt-2">
+            <div class="d-flex align-items-center">
+                <h6>Seleccione el ciclo:</h6>
+                <div class="btn-group selector" role="group" aria-label="GastosIngresos">
+                    <button type="button" class="btn btn-outline-primary" id="btn-mensual">Mensual</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-anual">Anual</button>
                 </div>
             </div>
         </div>
 
         <!-- Meses seleccionables -->
-        <div class="btn-group mt-3" role="group" aria-label="Meses">
+        <div class="btn-group mt-3" id="botones-meses" role="group" aria-label="Meses">
             <button type="button" class="btn btn-outline-primary">Enero</button>
             <button type="button" class="btn btn-outline-primary">Febrero</button>
             <button type="button" class="btn btn-outline-primary">Marzo</button>
@@ -40,6 +46,7 @@
             <button type="button" class="btn btn-outline-primary">Noviembre</button>
             <button type="button" class="btn btn-outline-primary">Diciembre</button>
         </div>
+
         
         <div class="col-12 d-flex mt-4">
             <!-- Gráfico de Google Charts -->
@@ -73,8 +80,24 @@
         margin-top: 8%;
     }
     .active {
-    background-color: #007bff; /* Color de fondo para el botón seleccionado */
-    color: white; /* Color del texto para que contraste */
+    background-color: #007bff;
+    color: white; /
+    }
+
+    .ciclo{
+        margin-left: 4%;
+    }
+
+    .selector{
+        margin-left: 2%;
+    }
+    .btn.selected {
+        background-color: #007bff; 
+        color: white;
+    }
+    .btn.disabled {
+    pointer-events: none; /* Desactiva los clicks */
+    opacity: 0.5;
 }
 </style>
 
@@ -151,7 +174,7 @@
 }
 
 // Captura todos los botones de los meses
-const botonesMeses = document.querySelectorAll('.btn-group .btn');
+const botonesMeses = document.querySelectorAll('#botones-meses .btn');
 
 // Mapea los nombres de los meses a sus valores numéricos (1 - Enero, 12 - Diciembre)
 const meses = {
@@ -188,14 +211,14 @@ if (mesUrl) {
 // Itera sobre cada botón de mes y añade un evento para capturar el clic
 botonesMeses.forEach(boton => {
     boton.addEventListener('click', function(event) {
-        event.preventDefault();  // Prevenir el comportamiento por defecto del botón
+        event.preventDefault();
         const mesSeleccionado = this.textContent.trim();  // Captura el texto del mes
         const mesNumerico = meses[mesSeleccionado];  // Obtén el valor numérico del mes
 
         if (mesNumerico) {
-            // Obtiene el año actual (puedes ajustar esto según tu lógica)
+            // Obtiene el año actual
             const anioActual = new Date().getFullYear();
-            // Redirige a la URL con el formato deseado
+            // Redirige a la URL 
             const url = `/ver/reporteFinanciero/${anioActual}/${mesNumerico}/`;
             window.location.href = url;  // Redirige a la nueva URL
         }
@@ -217,6 +240,60 @@ if (hayIngresos) {
     document.getElementById('mensaje-ingresos').style.display = 'block';  // Mostrar mensaje
 }
 
+
+// Captura de los botones de Gastos e Ingresos
+const botonesGastosIngresos = document.querySelectorAll('.btn-group.selector button');
+
+// Itera sobre cada botón y añade un evento para capturar el clic
+botonesGastosIngresos.forEach(boton => {
+    boton.addEventListener('click', function() {
+        // Elimina la clase 'selected' de todos los botones
+        botonesGastosIngresos.forEach(btn => btn.classList.remove('selected'));
+        
+        // Agrega la clase 'selected' al botón que fue clickeado
+        this.classList.add('selected');
+    });
+});
+
+// Captura de los botones de Ciclo (Mensual y Anual)
+const botonesCiclo = document.querySelectorAll('.btn-group.selector + .btn-group button');
+
+// Itera sobre cada botón y añade un evento para capturar el click
+botonesCiclo.forEach(boton => {
+    boton.addEventListener('click', function() {
+        // Elimina la clase 'selected' de todos los botones
+        botonesCiclo.forEach(btn => btn.classList.remove('selected'));
+        
+        // Agrega la clase 'selected' al botón que fue clickeado
+        this.classList.add('selected');
+    });
+});
+
+
+// Captura de los botones de ciclo
+const btnMensual = document.getElementById('btn-mensual');
+const btnAnual = document.getElementById('btn-anual');
+
+// Función para activar/desactivar botones de meses
+function toggleMonthButtons(isAnnual) {
+    botonesMeses.forEach(button => {
+        button.disabled = isAnnual; // Bloquea los botones si es anual
+        button.classList.toggle('disabled', isAnnual); // Agrega clase para deshabilitar estilos
+    });
+}
+
+// Evento para los botones de ciclo
+btnMensual.addEventListener('click', function() {
+    toggleMonthButtons(false); // Activa los botones de meses
+});
+
+btnAnual.addEventListener('click', function() {
+    btnMensual.classList.remove('active') // saco clase active del boton mensual
+    toggleMonthButtons(true); // Desactiva los botones de meses
+    const anioActual = new Date().getFullYear();
+    const url = `/ver/reporteFinanciero/${anioActual}/0/`;
+            window.location.href = url;  // Redirige a la nueva URL
+});
 </script>
 
 {% endblock %}
