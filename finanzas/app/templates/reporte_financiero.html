@@ -139,6 +139,21 @@
     var ingresos = contexto.ingresos;
     var gastos = contexto.gastos;
     var ingresosPorCategoria = contexto.ingresos_por_categoria;
+    var gastosPorCategoria = contexto.gastos_por_categoria;
+    var resultadosPorCategoria;
+    var tituloGrafico;
+    
+    if (Array.isArray(ingresosPorCategoria) && ingresosPorCategoria.length > 0) {
+        resultadosPorCategoria = ingresosPorCategoria;
+        tituloGrafico = "Distribucion de Ingresos";
+    } else if (Array.isArray(gastosPorCategoria) && gastosPorCategoria.length > 0) {
+        resultadosPorCategoria = gastosPorCategoria;
+        tituloGrafico = "Distribucion de Gastos";
+    } else {
+        console.log("No hay datos disponibles en ingresos o gastos por categoría");
+    }
+
+    
 
 
     // Configuración del gráfico de Google Charts
@@ -151,9 +166,9 @@
     data.addColumn('number', 'Porcentaje');
     data.addColumn({type: 'string', role: 'tooltip', p: {'html': true}});
 
-    // Verifica que ingresosPorCategoria no sea undefined y sea un array
-    if (Array.isArray(ingresosPorCategoria)) {
-        ingresosPorCategoria.forEach(function(item) {
+    // Verifica que resultadosPorCategoria no sea undefined y sea un array
+    if (Array.isArray(resultadosPorCategoria)) {
+        resultadosPorCategoria.forEach(function(item) {
             var tooltipContent = `
                 <div>
                     <strong>Categoría: ${item.categoria__nombre}</strong><br>
@@ -163,11 +178,11 @@
             data.addRow([item.categoria__nombre, item.porcentaje, tooltipContent]);
         });
     } else {
-        console.error("ingresosPorCategoria no es un array:", ingresosPorCategoria);
+        console.error("resultadosPorCategoria no es un array:", resultadosPorCategoria);
     }
 
     var options = {
-        title: 'Distribución de Ingresos',
+        title: tituloGrafico,
         pieSliceText: 'percentage',
         slices: {
             0: { color: '#FF6384' },
