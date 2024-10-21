@@ -65,30 +65,50 @@
             </div>
         </div>
 
-        <!-- Leyenda del gráfico -->
+        <!-- Leyenda del gráfico 
         <div class="ml-4 d-flex flex-column align-items-start" style="margin-left: 20px;">
             <span style="color: #FF6384;"><i class="bi bi-cart"></i> Compras</span>
             <span style="color: #36A2EB;"><i class="bi bi-cash-stack"></i> Deuda</span>
             <span style="color: #FFCE56;"><i class="bi bi-house"></i> Vivienda</span>
             <span style="color: #4BC0C0;"><i class="bi bi-scissors"></i> Belleza</span>
         </div>
+        -->
+        
+        <!-- Detalle de Ingresos -->
+        <div class="col-12 mt-4" id="detalle_ingresos">
+            <h5>Detalles de Ingresos</h5>
+            <div id="ingresos-container"></div> <!-- Contenedor para los ingresos -->
+        </div>
+        
     </div>
 </div>
 
 <style>
+    .compras {
+        color: #FF6384;
+    }
+    .deuda {
+        color: #36A2EB;
+    }
+    .vivienda {
+        color: #FFCE56;
+    }
+    .belleza {
+        color: #4BC0C0;
+    }
     #detalle_categoria {
         margin-top: 8%;
     }
     .active {
-    background-color: #007bff;
-    color: white; /
+        background-color: #007bff;
+        color: white;
     }
 
-    .ciclo{
+    .ciclo {
         margin-left: 4%;
     }
 
-    .selector{
+    .selector {
         margin-left: 2%;
     }
     .btn.selected {
@@ -96,36 +116,41 @@
         color: white;
     }
     .btn.disabled {
-    pointer-events: none; /* Desactiva los clicks */
-    opacity: 0.5;
-}
+        pointer-events: none; /* Desactiva los clicks */
+        opacity: 0.5;
+    }
+    .ingreso-item {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+    }
 </style>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script>
 
-        // Captura de los botones de ciclo
-        const btnMensual = document.getElementById('btn-mensual');
-        const btnAnual = document.getElementById('btn-anual');
+    // Captura de los botones de ciclo
+    const btnMensual = document.getElementById('btn-mensual');
+    const btnAnual = document.getElementById('btn-anual');
 
-        // Captura los botones de Gastos e Ingresos
-        const btnGastos = document.getElementById('btn-gastos');
-        const btnIngresos = document.getElementById('btn-ingresos');
-        
-        // Obtén la URL actual
-        const url = window.location.href;
+    // Captura los botones de Gastos e Ingresos
+    const btnGastos = document.getElementById('btn-gastos');
+    const btnIngresos = document.getElementById('btn-ingresos');
+    
+    // Obtén la URL actual
+    const url = window.location.href;
 
-        // Verifica si la URL contiene 'gastos' o 'ingresos'
-        if (url.includes('gastos')) {
-            btnGastos.classList.add('active');
-            btnIngresos.classList.remove('active');
-        } else if (url.includes('ingresos')) {
-            btnIngresos.classList.add('active');
-            btnGastos.classList.remove('active');
-        }
+    // Verifica si la URL contiene 'gastos' o 'ingresos'
+    if (url.includes('gastos')) {
+        btnGastos.classList.add('active');
+        btnIngresos.classList.remove('active');
+    } else if (url.includes('ingresos')) {
+        btnIngresos.classList.add('active');
+        btnGastos.classList.remove('active');
+    }
 
-        function obtenerTipoActivo() {
+    function obtenerTipoActivo() {
 
             if (btnGastos.classList.contains('active')) {
                 return 'gastos';
@@ -142,7 +167,92 @@
     var gastosPorCategoria = contexto.gastos_por_categoria;
     var resultadosPorCategoria;
     var tituloGrafico;
-    
+     
+    // Categorias con sus Iconos y Colores
+    const categoriaProps = {
+        'Venta': { icon: 'bi bi-cash-stack', color: '#FF6384' },
+        'Salario': { icon: 'bi bi-wallet', color: '#36A2EB' },
+        'Bono': { icon: 'bi bi-gift', color: '#FFCE56' },
+        'Alquiler': { icon: 'bi bi-house', color: '#4BC0C0' },
+        'Ganancias': { icon: 'bi bi-cash', color: '#9966FF' },
+        'Otros': { icon: 'bi bi-box', color: '#FF9F40' },
+        'Comisiones': { icon: 'bi bi-coin', color: '#FF4500' },
+        'Inmueble': { icon: 'bi bi-house-door', color: '#FFA07A' },
+        'Expensas': { icon: 'bi bi-credit-card', color: '#FFD700' } 
+
+    };
+
+    const ingresosContainer = document.getElementById('ingresos-container');
+    const tituloElement = document.querySelector('#detalle_ingresos h5');
+
+    const urlParts2 = window.location.pathname.split('/');
+    const tipo = urlParts2[3]; // 'ingresos' o 'gastos'
+    const anio = urlParts2[4]; // '2024'
+    const mes = parseInt(urlParts2[5]); // '0' para anual
+
+    // Meses para mostrar en el título
+    const meses2 = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    // Arma el título
+    let titulo = '';
+    if (tipo === 'ingresos' || tipo === 'gastos') {
+        if (mes === 0) {
+            titulo = `Detalles de ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} Anuales`;
+        } else {
+            titulo = `Detalles de ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} de ${meses2[mes - 1]}`;
+        }
+    }
+    tituloElement.innerText = titulo;
+
+    // Función para mostrar los datos
+    function mostrarDatos(datos) {
+        // Verifica si hay datos
+        if (datos.length > 0) {
+            datos.forEach(item => {
+                // Crea el div para cada ingreso/gasto
+                const itemElement = document.createElement('div');
+                itemElement.className = 'ingreso-item d-flex align-items-center mb-2';
+
+                // Crea el ícono
+                const iconProps = categoriaProps[item.categoria__nombre] || { icon: 'bi bi-question-circle', color: '#000' };
+                const icon = document.createElement('i');
+                icon.className = iconProps.icon;
+                icon.style.marginRight = '8px';
+                icon.style.color = iconProps.color;
+
+                itemElement.appendChild(icon);
+
+                // Crea el contenido del ingreso/gasto
+                const content = document.createElement('div');
+                content.innerHTML = `
+                    <div>
+                        <strong>Categoría:</strong> ${item.categoria__nombre}<br>
+                        <strong>Nombre:</strong> ${item.nombre}<br>
+                        <strong>Fecha:</strong> ${item.fecha}<br>
+                        <strong>Monto:</strong> $${item.monto}<br>
+                    </div>
+                `;
+                itemElement.appendChild(content);
+
+                // Añade el ingreso/gasto al contenedor
+                ingresosContainer.appendChild(itemElement);
+            });
+        } else {
+            // Si no hay datos, muestra un mensaje
+            ingresosContainer.innerHTML = '<p>No hay datos registrados para este mes.</p>';
+        }
+    }
+
+    if (tipo === 'ingresos') {
+        mostrarDatos(ingresos);
+    } else if (tipo === 'gastos') {
+        mostrarDatos(gastos);
+    }
+
+    // Muestra el titulo del grafico que corresponda segun el tipo de datos (ingresos o gastos)
     if (Array.isArray(ingresosPorCategoria) && ingresosPorCategoria.length > 0) {
         resultadosPorCategoria = ingresosPorCategoria;
         tituloGrafico = "Distribucion de Ingresos";
@@ -154,7 +264,6 @@
     }
 
     
-
 
     // Configuración del gráfico de Google Charts
     google.charts.load('current', {'packages':['corechart']});
