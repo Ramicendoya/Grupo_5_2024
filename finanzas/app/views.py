@@ -337,7 +337,7 @@ class ReporteFinancieroView(View):
 
         # Creo el contexto para pasarlo al template
         context = {
-            'ingresos': list(ingresos.values()),
+            'ingresos': list(ingresos.values('id', 'nombre','descripcion', 'monto', 'fecha', 'categoria__nombre')),
             'gastos': [],
             'categorias': list(categorias.values()),  
             'ingresos_por_categoria': list(ingresos_por_categoria),
@@ -393,7 +393,7 @@ class ReporteFinancieroView(View):
 
         # Creo el contexto para pasarlo al template
         context = {
-            'gastos': list(gastos.values()),
+            'gastos': list(gastos.values('id', 'nombre','observaciones', 'monto', 'fecha', 'categoria__nombre')),
             'ingresos': [],
             'categorias': list(categorias.values()),  
             'gastos_por_categoria': list(gastos_por_categoria),
