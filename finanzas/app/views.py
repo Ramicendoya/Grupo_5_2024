@@ -14,11 +14,11 @@ def home(request):
 
 class GastoView(View):
     def get(self, request):
-        # Obtiene la lista de ingresos fijos y variables
+        # Obtiene la lista de Gasto fijos y variables
         gastos_fijos = Gasto.objects.filter(bl_fijo=True,bl_baja=0)
         gastos_variables = Gasto.objects.filter(bl_fijo=False,bl_baja=0)
         categorias= Categoria.objects.filter(bl_baja=0)
-        # Crea un contexto para pasar los ingresos a la plantilla
+        # Crea un contexto para pasar los Gasto a la plantilla
         context = {
             'gastos_fijos': gastos_fijos,
             'gastos_variables': gastos_variables,
@@ -29,6 +29,8 @@ class GastoView(View):
         return render(request, 'gastos.html', context)
     
     def post(self, request):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
         categoria_id = request.POST.get('categoria')
         
 
@@ -37,12 +39,114 @@ class GastoView(View):
             observaciones=request.POST.get('nombre_gasto'),
             persona=Persona.objects.first(),
             categoria = Categoria.objects.get(id=categoria_id),
+            metodo_pago=request.POST.get('metodo_pago'),
             bl_fijo='tipo_gasto' in request.POST,
         )
+        
         gasto.save()
+
+        frecuencia = request.POST.get('frecuencia')
+
+        if frecuencia == 'diario':
+            dias = 1
+        elif frecuencia == 'semanal':
+            dias = 7
+        elif frecuencia == 'mensual':
+            dias = 30  # 
+        elif frecuencia == 'anual':
+            dias = 365
+        elif frecuencia == 'personalizado':
+            dias = int(request.POST.get('diasPersonalizados', 1))  # Por defecto a 1 si no se proporciona
+
+        recurrencia=Recurrencia(
+                fecha_desde=request.POST.get('fechaDesde'),
+                fecha_hasta=request.POST.get('fechaHasta'),
+                frecuencia=dias,
+                gasto=gasto,
+                ingreso=None,
+                bl_baja=False,
+            )
+        recurrencia.save()
 
         return redirect('registrar_gasto')
     
+class ObtenerGastoView(View):
+    def get(self, request, gasto_pk):
+            # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+            gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+            # Verifico si el Gasto pertenece a la persona
+            if gasto.persona == persona:
+                gasto_data = {
+                    'nombre': gasto.observaciones,
+                    'monto': gasto.monto,
+                    'categoria_id': gasto.categoria.id,
+                    'metodo_pago': gasto.metodo_pago,
+                    'bl_fijo': gasto.bl_fijo
+                    
+                }
+                print(gasto_data)
+                return JsonResponse(gasto_data)
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+
+class EditarGastoView(View):
+     def post(self, request, gasto_pk):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
+        persona = get_object_or_404(Persona, pk=1)  # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        
+        # Busca el Gasto por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        if gasto.persona != persona:
+            messages.error(request, "No tienes permisos para editar este gasto.")
+            return redirect('registrar_gasto')
+
+        gasto.observaciones = request.POST.get('nombre')
+        #gasto.descripcion = request.POST.get('descripcion')
+        gasto.monto = request.POST.get('monto')
+        gasto.bl_fijo = 'tipo_gastoModal' in request.POST
+        categoria_id = request.POST.get('categoria')
+        print(categoria_id)
+        gasto.categoria = get_object_or_404(Categoria, id=categoria_id)
+        gasto.metodo_pago = request.POST.get('metodo_pago')
+
+        gasto.save()
+        messages.success(request, "Gasto actualizado con éxito.")
+        return redirect('registrar_gasto')
+     
+   
+class EliminarGastoView(View):
+    def post(self, request, gasto_pk):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
+        # Esto tenemos que reemplazarlo por la persona autenticada en la aplicacion
+        persona = get_object_or_404(Persona, pk=1)
+        
+        # Busco el ingreso por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        # Verifico si el ingreso pertenece a la persona
+        if gasto.persona == persona:
+            gasto.bl_baja = True
+            gasto.save()
+
+           # Si el ingreso es fijo, tambien elimino la recurrencia asociada
+            if(gasto.bl_fijo == True):
+                recurrencias = Recurrencia.objects.filter(gasto=gasto)
+                for recurrencia in recurrencias:
+                    recurrencia.bl_baja = True
+                    recurrencia.save()
+            messages.success(request, "Gasto eliminado con éxito.")
+        else:
+            messages.error(request, "El Gasto no pertenece a la persona especificada.")
+
+        return redirect('registrar_gasto')
 
 
 #    Ingresos:
@@ -229,14 +333,3 @@ class CategoriaView(View):
             # Si el origen no es válido
             return redirect('home')
 
-   
-class EliminarGastoView(View):
-    def post(self, request):        
-        gasto = get_object_or_404(Gasto, id=request.POST.get('id_gasto'))
-        
-        # Modificamos el campo bl_baja del objeto existente
-        gasto.bl_baja = 1
-        gasto.save()
-
-        # Redireccionamos a la vista de registrar_gasto
-        return redirect('registrar_gasto')
