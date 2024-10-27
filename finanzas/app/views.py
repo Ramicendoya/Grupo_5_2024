@@ -245,23 +245,26 @@ class EliminarGastoView(View):
 
 class ObtenerSaldoActualView(View):
     def get(self, request):
-        # Obtener la persona autenticada
-        persona = get_object_or_404(Persona, pk=request.user.persona.id)  # Reemplazar con el campo de usuario autenticado
-        
-        # Calcular los ingresos totales (filtrar movimientos activos)
-        ingresos_total = MovimientoIngreso.objects.filter(
-            ingreso__persona=persona,
-            bl_baja=False
-        ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+        try:
+            # Obtener la persona autenticada
+            persona = get_object_or_404(Persona, pk=1)
 
-        # Calcular los gastos totales (filtrar movimientos activos)
-        gastos_total = MovimientoGasto.objects.filter(
-            gasto__persona=persona,
-            bl_baja=False
-        ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+            # Calcular los ingresos totales (filtrar movimientos activos)
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-        # Calcular el saldo actual
-        saldo_actual = ingresos_total - gastos_total
+            # Calcular los gastos totales (filtrar movimientos activos)
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
-        # Retornar el saldo en un JsonResponse
-        return JsonResponse({'saldo_actual': saldo_actual})
+            # Calcular el saldo actual
+            saldo_actual = ingresos_total - gastos_total
+
+            # Retornar el saldo en un JsonResponse
+            return JsonResponse({'saldo_actual': saldo_actual})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
