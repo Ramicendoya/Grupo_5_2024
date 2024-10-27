@@ -2,11 +2,13 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, IngresoView, EliminarIngreso, ObtenerIngresoView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView
 
 urlpatterns = [
     path('', views.home, name='home'),
 
+    #Promociones
+    path('promociones/', PromocionesView.as_view(), name='promociones'),
 
     #Gastos
     path('registrar/gasto/', GastoView.as_view(), name='registrar_gasto'),

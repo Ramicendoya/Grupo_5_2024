@@ -10,6 +10,10 @@ from django.views import View
 def home(request):
     return render(request, 'home.html') 
 
+class PromocionesView(View):
+    def get(self, request):
+
+        return render(request, 'promociones.html')
 
 
 class GastoView(View):
