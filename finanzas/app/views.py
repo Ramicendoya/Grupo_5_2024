@@ -268,3 +268,64 @@ class ObtenerSaldoActualView(View):
             return JsonResponse({'saldo_actual': saldo_actual})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+        
+class ObtenerSaldoFuturoView(View):
+    def get(self, request):
+        try:
+            # Hardcodear el ID de la persona
+            persona_id = 1  # Asumimos que el ID de la persona es 1
+            
+            # Obtener la persona usando el ID hardcodeado
+            persona = get_object_or_404(Persona, pk=persona_id)
+
+            # Calcular el saldo futuro para diferentes períodos
+            saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30)  # 30 días para un mes
+            saldo_futuro_2_meses = self.calcular_saldo_futuro(persona, 60)  # 60 días para dos meses
+            saldo_futuro_3_meses = self.calcular_saldo_futuro(persona, 90)  # 90 días para tres meses
+
+            # Retornar el saldo futuro en un JsonResponse
+            return JsonResponse({
+                'saldo_futuro_1_mes': saldo_futuro_1_mes,
+                'saldo_futuro_2_meses': saldo_futuro_2_meses,
+                'saldo_futuro_3_meses': saldo_futuro_3_meses
+            })
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+    def calcular_saldo_futuro(self, persona, dias):
+        # Calcular los ingresos futuros
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        ingresos_futuros_total = 0
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                # Calcular cuántas veces ocurre dentro del período especificado
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        # Calcular los gastos futuros
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        gastos_futuros_total = 0
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                # Calcular cuántas veces ocurre dentro del período especificado
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        # Calcula el saldo futuro
+        saldo_futuro = ingresos_futuros_total - gastos_futuros_total 
+        return saldo_futuro
