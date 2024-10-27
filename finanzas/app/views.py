@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto
+from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto
 from django.utils import timezone
 from django.views import View
+from django.db.models import Sum
 
 
 def home(request):
@@ -240,3 +241,27 @@ class EliminarGastoView(View):
 
         # Redireccionamos a la vista de registrar_gasto
         return redirect('registrar_gasto')
+
+
+class ObtenerSaldoActualView(View):
+    def get(self, request):
+        # Obtener la persona autenticada
+        persona = get_object_or_404(Persona, pk=request.user.persona.id)  # Reemplazar con el campo de usuario autenticado
+        
+        # Calcular los ingresos totales (filtrar movimientos activos)
+        ingresos_total = MovimientoIngreso.objects.filter(
+            ingreso__persona=persona,
+            bl_baja=False
+        ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+        # Calcular los gastos totales (filtrar movimientos activos)
+        gastos_total = MovimientoGasto.objects.filter(
+            gasto__persona=persona,
+            bl_baja=False
+        ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+        # Calcular el saldo actual
+        saldo_actual = ingresos_total - gastos_total
+
+        # Retornar el saldo en un JsonResponse
+        return JsonResponse({'saldo_actual': saldo_actual})

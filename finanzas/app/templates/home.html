@@ -2,17 +2,64 @@
 {% load static %}
 
 {% block main %}
-    <header align="center">
-        <h1 class="text-center">Bienvenido a Finamagar</h1>
-
-        <img src="{% static 'img/imagen-prueba.jpeg' %}" width="500 px" >
-     
-        
+<div class="container my-4">
+    <header class="text-center">
+        <h1>Saldo Actual y Estimado</h1>
     </header>
-   <!-- <p>Esta es una plantilla de ejemplo para tu proyecto Django.</p>-->
-        
-
     
-
+    <!-- KPI Cards for Saldo Actual and Saldo Futuro -->
+    <div class="row my-4">
+        <div class="col-md-4 offset-md-2 text-center">
+            <div class="card p-3">
+                <h5>Saldo Actual</h5>
+                <h3>${{ saldo_actual }}</h3>
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="card p-3">
+                <h5>Saldo Futuro</h5>
+                <h3>$30,000</h3>
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+    </div>
     
+    <!-- Filter Section -->
+    <div class="row my-3 justify-content-center">
+        <div class="col-md-4 text-center">
+            <select class="form-select">
+                <option selected>Seleccione un filtro</option>
+                <option value="1">Últimos 3 meses</option>
+                <option value="2">Últimos 6 meses</option>
+                <option value="3">Año completo</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h5>Históricos de Saldos en los Últimos Meses</h5>
+                <!-- Aquí puedes insertar el gráfico de barras de saldo -->
+                <img src="{% static 'img/grafico_saldo.png' %}" class="img-fluid" alt="Histórico de Saldos">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Porcentaje de Categorías</h5>
+                <!-- Gráfico de porcentaje de categorías -->
+                <img src="{% static 'img/grafico_pie.png' %}" class="img-fluid" alt="Porcentaje de Categorías">
+                
+                <h5>Porcentaje de Metas Cumplidas</h5>
+                <h2>70%</h2>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
