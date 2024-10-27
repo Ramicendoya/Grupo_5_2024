@@ -3,20 +3,24 @@
 
 {% block main %}
 <div class="container my-4">
-    <header class="text-center">
-        <h1>Saldo Actual y Estimado</h1>
+    <header class="text-center mb-4">
+        <div class="d-flex justify-content-center align-items-center">
+            <!-- Logo Section -->
+            <img src="{% static 'img/imagen-prueba.jpeg' %}" alt="Logo" style="width: 60px; height: auto; margin-right: 10px;">
+            <h1>Saldo Actual y Estimado</h1>
+        </div>
     </header>
 
     <!-- KPI Cards for Saldo Actual y Saldo Futuro -->
     <div class="row my-4">
         <div class="col-md-4 offset-md-2 text-center">
-            <div class="card p-3">
+            <div class="card p-3 bg-primary text-white">
                 <h5>Saldo Actual</h5>
                 <h3 id="saldo-actual">$0.00</h3>
             </div>
         </div>
         <div class="col-md-4 text-center">
-            <div class="card p-3">
+            <div class="card p-3 bg-success text-white">
                 <h5>Saldo Futuro</h5>
                 <h3 id="saldo-futuro">$0.00</h3>
             </div>
@@ -37,14 +41,14 @@
     <!-- Charts Section -->
     <div class="row">
         <div class="col-md-8">
-            <div class="card p-3">
+            <div class="card p-3 bg-light">
                 <h5>Históricos de Saldos en los Últimos Meses</h5>
                 <!-- Aquí puedes insertar el gráfico de barras de saldo -->
                 <img src="{% static 'img/grafico_saldo.png' %}" class="img-fluid" alt="Histórico de Saldos">
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card p-3">
+            <div class="card p-3 bg-light">
                 <h5>Porcentaje de Categorías</h5>
                 <!-- Gráfico de porcentaje de categorías -->
                 <img src="{% static 'img/grafico_pie.png' %}" class="img-fluid" alt="Porcentaje de Categorías">
@@ -76,7 +80,6 @@
         fetch('{% url "saldo_futuro" %}')
             .then(response => response.json())
             .then(data => {
-                // Guardar los datos del saldo futuro para usarlos en la actualización
                 window.saldoFuturoData = data;
                 actualizarSaldoFuturo();
             })
