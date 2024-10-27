@@ -76,20 +76,22 @@
         fetch('{% url "saldo_futuro" %}')
             .then(response => response.json())
             .then(data => {
-                actualizarSaldoFuturo(data);
+                // Guardar los datos del saldo futuro para usarlos en la actualización
+                window.saldoFuturoData = data;
+                actualizarSaldoFuturo();
             })
             .catch(error => console.error('Error fetching saldo futuro:', error));
     }
 
-    function actualizarSaldoFuturo(data) {
+    function actualizarSaldoFuturo() {
         const filtro = document.getElementById('filtro-tiempo').value;
         let saldoFuturo;
         if (filtro === '1') {
-            saldoFuturo = parseFloat(data.saldo_futuro_1_mes).toFixed(2);
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_1_mes).toFixed(2);
         } else if (filtro === '2') {
-            saldoFuturo = parseFloat(data.saldo_futuro_2_meses).toFixed(2);
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_2_meses).toFixed(2);
         } else if (filtro === '3') {
-            saldoFuturo = parseFloat(data.saldo_futuro_3_meses).toFixed(2);
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_3_meses).toFixed(2);
         }
         document.getElementById('saldo-futuro').textContent = `$${saldoFuturo}`;
     }

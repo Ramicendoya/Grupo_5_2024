@@ -272,18 +272,27 @@ class ObtenerSaldoActualView(View):
 class ObtenerSaldoFuturoView(View):
     def get(self, request):
         try:
-            # Hardcodear el ID de la persona
             persona_id = 1  # Asumimos que el ID de la persona es 1
-            
-            # Obtener la persona usando el ID hardcodeado
             persona = get_object_or_404(Persona, pk=persona_id)
 
-            # Calcular el saldo futuro para diferentes períodos
-            saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30)  # 30 días para un mes
-            saldo_futuro_2_meses = self.calcular_saldo_futuro(persona, 60)  # 60 días para dos meses
-            saldo_futuro_3_meses = self.calcular_saldo_futuro(persona, 90)  # 90 días para tres meses
+            # Obtener saldo actual
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-            # Retornar el saldo futuro en un JsonResponse
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            saldo_actual = ingresos_total - gastos_total
+
+            # Calcular saldo futuro
+            saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
+            saldo_futuro_2_meses = self.calcular_saldo_futuro(persona, 60, saldo_actual)
+            saldo_futuro_3_meses = self.calcular_saldo_futuro(persona, 90, saldo_actual)
+
             return JsonResponse({
                 'saldo_futuro_1_mes': saldo_futuro_1_mes,
                 'saldo_futuro_2_meses': saldo_futuro_2_meses,
@@ -294,38 +303,33 @@ class ObtenerSaldoFuturoView(View):
             return JsonResponse({'error': 'Persona no encontrada'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-        
-    def calcular_saldo_futuro(self, persona, dias):
-        # Calcular los ingresos futuros
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        ingresos_futuros_total = 0
         ingresos_fijos = Ingreso.objects.filter(
             persona=persona,
             bl_fijo=1,
             bl_baja=0
         )
 
-        ingresos_futuros_total = 0
         for ingreso in ingresos_fijos:
             recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
             for recurrencia in recurrencias:
-                # Calcular cuántas veces ocurre dentro del período especificado
                 repeticiones = dias // recurrencia.frecuencia
                 ingresos_futuros_total += ingreso.monto * repeticiones
 
-        # Calcular los gastos futuros
+        gastos_futuros_total = 0
         gastos_fijos = Gasto.objects.filter(
             persona=persona,
             bl_fijo=1,
             bl_baja=0
         )
 
-        gastos_futuros_total = 0
         for gasto in gastos_fijos:
             recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
             for recurrencia in recurrencias:
-                # Calcular cuántas veces ocurre dentro del período especificado
                 repeticiones = dias // recurrencia.frecuencia
                 gastos_futuros_total += gasto.monto * repeticiones
 
-        # Calcula el saldo futuro
-        saldo_futuro = ingresos_futuros_total - gastos_futuros_total 
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
