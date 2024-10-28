@@ -2,6 +2,36 @@
 {% load static %}
 
 {% block main %}
+<style>
+    body {
+        background-color: #f8f9fa; /* Un gris claro para el fondo */
+    }
+
+    h1 {
+        color: #2c3e50; /* Azul oscuro para el título */
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .bg-primary {
+        background-color: #007bff !important; /* Azul para las tarjetas de Saldo Actual */
+    }
+
+    .bg-success {
+        background-color: #28a745 !important; /* Verde para las tarjetas de Saldo Futuro */
+    }
+
+    .bg-light {
+        background-color: #ffffff !important; /* Blanco para otras tarjetas */
+    }
+</style>
+
 <div class="container my-4">
     <header class="text-center mb-4">
         <div class="d-flex justify-content-center align-items-center">
@@ -28,7 +58,10 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="row my-3 justify-content-center">
+    <div class="row my-3 justify-content-center align-items-center">
+        <div class="col-md-2 text-end">
+            <label for="filtro-tiempo" class="form-label">Proyección hacia:</label>
+        </div>
         <div class="col-md-4 text-center">
             <select class="form-select" id="filtro-tiempo" onchange="actualizarSaldoFuturo()">
                 <option value="1" selected>Próximo mes</option>
