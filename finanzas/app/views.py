@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto
+from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto
 from django.utils import timezone
 from django.views import View
+from django.db.models import Sum
 
 
 def home(request):
@@ -240,3 +241,95 @@ class EliminarGastoView(View):
 
         # Redireccionamos a la vista de registrar_gasto
         return redirect('registrar_gasto')
+
+
+class ObtenerSaldoActualView(View):
+    def get(self, request):
+        try:
+            # Obtener la persona autenticada
+            persona = get_object_or_404(Persona, pk=1)
+
+            # Calcular los ingresos totales (filtrar movimientos activos)
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            # Calcular los gastos totales (filtrar movimientos activos)
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            # Calcular el saldo actual
+            saldo_actual = ingresos_total - gastos_total
+
+            # Retornar el saldo en un JsonResponse
+            return JsonResponse({'saldo_actual': saldo_actual})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+class ObtenerSaldoFuturoView(View):
+    def get(self, request):
+        try:
+            persona_id = 1  # Asumimos que el ID de la persona es 1
+            persona = get_object_or_404(Persona, pk=persona_id)
+
+            # Obtener saldo actual
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            saldo_actual = ingresos_total - gastos_total
+
+            # Calcular saldo futuro
+            saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
+            saldo_futuro_2_meses = self.calcular_saldo_futuro(persona, 60, saldo_actual)
+            saldo_futuro_3_meses = self.calcular_saldo_futuro(persona, 90, saldo_actual)
+
+            return JsonResponse({
+                'saldo_futuro_1_mes': saldo_futuro_1_mes,
+                'saldo_futuro_2_meses': saldo_futuro_2_meses,
+                'saldo_futuro_3_meses': saldo_futuro_3_meses
+            })
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        ingresos_futuros_total = 0
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        gastos_futuros_total = 0
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
+        return saldo_futuro

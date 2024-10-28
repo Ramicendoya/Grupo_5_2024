@@ -2,17 +2,135 @@
 {% load static %}
 
 {% block main %}
-    <header align="center">
-        <h1 class="text-center">Bienvenido a Finamagar</h1>
+<style>
+    body {
+        background-color: #f8f9fa; /* Un gris claro para el fondo */
+    }
 
-        <img src="{% static 'img/imagen-prueba.jpeg' %}" width="500 px" >
-     
-        
+    h1 {
+        color: #2c3e50; /* Azul oscuro para el título */
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .bg-primary {
+        background-color: #007bff !important; /* Azul para las tarjetas de Saldo Actual */
+    }
+
+    .bg-success {
+        background-color: #28a745 !important; /* Verde para las tarjetas de Saldo Futuro */
+    }
+
+    .bg-light {
+        background-color: #ffffff !important; /* Blanco para otras tarjetas */
+    }
+</style>
+
+<div class="container my-4">
+    <header class="text-center mb-4">
+        <div class="d-flex justify-content-center align-items-center">
+            <!-- Logo Section -->
+            <img src="{% static 'img/imagen-prueba.jpeg' %}" alt="Logo" style="width: 60px; height: auto; margin-right: 10px;">
+            <h1>Saldo Actual y Estimado</h1>
+        </div>
     </header>
-   <!-- <p>Esta es una plantilla de ejemplo para tu proyecto Django.</p>-->
-        
 
-    
+    <!-- KPI Cards for Saldo Actual y Saldo Futuro -->
+    <div class="row my-4">
+        <div class="col-md-4 offset-md-2 text-center">
+            <div class="card p-3 bg-primary text-white">
+                <h5>Saldo Actual</h5>
+                <h3 id="saldo-actual">$0.00</h3>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="card p-3 bg-success text-white">
+                <h5>Saldo Futuro</h5>
+                <h3 id="saldo-futuro">$0.00</h3>
+            </div>
+        </div>
+    </div>
 
-    
+    <!-- Filter Section -->
+    <div class="row my-3 justify-content-center align-items-center">
+        <div class="col-md-2 text-end">
+            <label for="filtro-tiempo" class="form-label">Proyección hacia:</label>
+        </div>
+        <div class="col-md-4 text-center">
+            <select class="form-select" id="filtro-tiempo" onchange="actualizarSaldoFuturo()">
+                <option value="1" selected>Próximo mes</option>
+                <option value="2">Próximos 2 meses</option>
+                <option value="3">Próximos 3 meses</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card p-3 bg-light">
+                <h5>Históricos de Saldos en los Últimos Meses</h5>
+                <!-- Aquí puedes insertar el gráfico de barras de saldo -->
+                <img src="{% static 'img/grafico_saldo.png' %}" class="img-fluid" alt="Histórico de Saldos">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 bg-light">
+                <h5>Porcentaje de Categorías</h5>
+                <!-- Gráfico de porcentaje de categorías -->
+                <img src="{% static 'img/grafico_pie.png' %}" class="img-fluid" alt="Porcentaje de Categorías">
+                
+                <h5>Porcentaje de Metas Cumplidas</h5>
+                <h2>70%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchSaldoActual();
+        fetchSaldoFuturo();
+    });
+
+    function fetchSaldoActual() {
+        fetch('{% url "saldo_actual" %}')
+            .then(response => response.json())
+            .then(data => {
+                const saldoActual = parseFloat(data.saldo_actual).toFixed(2);
+                document.getElementById('saldo-actual').textContent = `$${saldoActual}`;
+            })
+            .catch(error => console.error('Error fetching saldo actual:', error));
+    }
+
+    function fetchSaldoFuturo() {
+        fetch('{% url "saldo_futuro" %}')
+            .then(response => response.json())
+            .then(data => {
+                window.saldoFuturoData = data;
+                actualizarSaldoFuturo();
+            })
+            .catch(error => console.error('Error fetching saldo futuro:', error));
+    }
+
+    function actualizarSaldoFuturo() {
+        const filtro = document.getElementById('filtro-tiempo').value;
+        let saldoFuturo;
+        if (filtro === '1') {
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_1_mes).toFixed(2);
+        } else if (filtro === '2') {
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_2_meses).toFixed(2);
+        } else if (filtro === '3') {
+            saldoFuturo = parseFloat(window.saldoFuturoData.saldo_futuro_3_meses).toFixed(2);
+        }
+        document.getElementById('saldo-futuro').textContent = `$${saldoFuturo}`;
+    }
+</script>
+
 {% endblock %}
