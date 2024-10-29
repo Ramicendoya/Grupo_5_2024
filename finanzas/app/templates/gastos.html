@@ -59,7 +59,7 @@
                  <!--Frecuencia de gastos-->
                  <div class="col-md-4 mb-3">
                     <label for="frecuencia" class="form-label">Frecuencia</label>
-                    <select class="form-select" id="frecuencia" name="frecuencia" onchange="togglePersonalizado()">
+                    <select class="form-select" id="frecuencia" name="frecuencia" onchange="togglePersonalizado()" required>
                         <option value="">Selecciona una opción</option>
                         <option value="diario">Diario</option>
                         <option value="semanal">Semanal</option>
@@ -70,7 +70,7 @@
                 
                     <div id="personalizadoContainer" class="d-none mt-2">
                         <label for="diasPersonalizados" class="form-label">Número de días:</label>
-                        <input type="number" class="form-control" id="diasPersonalizados" name="diasPersonalizados" placeholder="Introduce el número de días" min="1">
+                        <input type="number" class="form-control" id="diasPersonalizados" name="diasPersonalizados" placeholder="Introduce el número de días" min="1" >
                     </div>
                 </div>
                 <!--
@@ -80,17 +80,14 @@
                 </div>
                 -->
 
-
-
-
                 <!--Duración-->
                     <div class="col-md-4 mb-3">
                         <div class="row">
                             <!-- Desde -->
                             <div class="col"> 
                                 <div class="d-flex flex-column mb-2">
-                                    <label for="fechaDesde" class="form-label">Desde</label>
-                                    <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" placeholder="">
+                                    <label for="fechaDesde" class="form-label"  >Desde</label>
+                                    <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" placeholder="" required>
                                 </div>
                             </div>
                     
@@ -100,11 +97,11 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <label for="fechaHasta" class="form-label mb-0">Hasta</label>
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="indefinidoSwitch1" value="1" name="indefinidoSwitch1" onchange="toggleFields1()" >
+                                            <input class="form-check-input" type="checkbox" id="indefinidoSwitch1" value="1" name="indefinidoSwitch1" onchange="toggleFields1()"  >
                                             <label class="form-check-label" for="indefinidoSwitch1">Indefinido</label>
                                         </div>
                                     </div>
-                                    <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" placeholder="">
+                                    <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" placeholder="" required>
                                 </div>
                             </div>
                         </div> 

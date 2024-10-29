@@ -32,42 +32,53 @@ class GastoView(View):
         #parametros_post = request.POST.dict()
         #return JsonResponse(parametros_post)
         categoria_id = request.POST.get('categoria')
-        
-
-        gasto = Gasto(
-            monto=request.POST.get('monto'),
-            observaciones=request.POST.get('nombre_gasto'),
-            persona=Persona.objects.first(),
-            categoria = Categoria.objects.get(id=categoria_id),
-            metodo_pago=request.POST.get('metodo_pago'),
-            bl_fijo='tipo_gasto' in request.POST,
-        )
-        
-        gasto.save()
-
-        frecuencia = request.POST.get('frecuencia')
-
-        if frecuencia == 'diario':
-            dias = 1
-        elif frecuencia == 'semanal':
-            dias = 7
-        elif frecuencia == 'mensual':
-            dias = 30  # 
-        elif frecuencia == 'anual':
-            dias = 365
-        elif frecuencia == 'personalizado':
-            dias = int(request.POST.get('diasPersonalizados', 1))  # Por defecto a 1 si no se proporciona
-
-        recurrencia=Recurrencia(
-                fecha_desde=request.POST.get('fechaDesde'),
-                fecha_hasta=request.POST.get('fechaHasta'),
-                frecuencia=dias,
-                gasto=gasto,
-                ingreso=None,
-                bl_baja=False,
+        bl_fijo='tipo_gasto' in request.POST
+        if(bl_fijo==True): 
+            gasto = Gasto(
+                monto=request.POST.get('monto'),
+                observaciones=request.POST.get('nombre_gasto'),
+                persona=Persona.objects.first(),
+                categoria = Categoria.objects.get(id=categoria_id),
+                metodo_pago=request.POST.get('metodo_pago'),
+                fecha = timezone.now().date(),
+                bl_fijo='tipo_gasto' in request.POST,
             )
-        recurrencia.save()
+            
+            gasto.save()
 
+            frecuencia = request.POST.get('frecuencia')
+
+            if frecuencia == 'diario':
+                dias = 1
+            elif frecuencia == 'semanal':
+                dias = 7
+            elif frecuencia == 'mensual':
+                dias = 30  # 
+            elif frecuencia == 'anual':
+                dias = 365
+            elif frecuencia == 'personalizado':
+                dias = int(request.POST.get('diasPersonalizados', 1))  # Por defecto a 1 si no se proporciona
+
+            recurrencia=Recurrencia(
+                    fecha_desde=request.POST.get('fechaDesde'),
+                    fecha_hasta=request.POST.get('fechaHasta'),
+                    frecuencia=dias,
+                    gasto=gasto,
+                    ingreso=None,
+                    bl_baja=False,
+                )
+            recurrencia.save()
+        else:
+            gasto = Gasto(
+                monto=request.POST.get('monto'),
+                observaciones=request.POST.get('nombre_gasto'),
+                persona=Persona.objects.first(),
+                categoria = Categoria.objects.get(id=categoria_id),
+                metodo_pago=request.POST.get('metodo_pago'),
+                fecha = timezone.now().date(),
+                bl_fijo='tipo_gasto' in request.POST,
+            )
+            gasto.save()
         return redirect('registrar_gasto')
     
 class ObtenerGastoView(View):
