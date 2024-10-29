@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Título -->
+        <div class="col-12 text-center">
+            <p class="title" style="font-size: 24px; font-weight: bold;">Informe Financiero</p>
+        </div>
+        
+        <!-- Selector de Gastos o Ingresos-->
+        <div class="col-12 mt-2">
+            <div class="d-flex align-items-center">   
+                <h6>Seleccione que informe desea ver:</h6>
+                <div class="btn-group selector" role="group" aria-label="GastosIngresos">
+                    <button type="button" class="btn btn-outline-primary" id="btn-gastos">Gastos</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-ingresos">Ingresos</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selector de Ciclo Mensual o Anual -->
+        <div class="col-12 mt-2">
+            <div class="d-flex align-items-center">
+                <h6>Seleccione el ciclo:</h6>
+                <div class="btn-group selector" role="group" aria-label="GastosIngresos">
+                    <button type="button" class="btn btn-outline-primary" id="btn-mensual">Mensual</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-anual">Anual</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meses seleccionables -->
+        <div class="btn-group mt-3" id="botones-meses" role="group" aria-label="Meses">
+            <button type="button" class="btn btn-outline-primary">Enero</button>
+            <button type="button" class="btn btn-outline-primary">Febrero</button>
+            <button type="button" class="btn btn-outline-primary">Marzo</button>
+            <button type="button" class="btn btn-outline-primary">Abril</button>
+            <button type="button" class="btn btn-outline-primary">Mayo</button>
+            <button type="button" class="btn btn-outline-primary">Junio</button>
+            <button type="button" class="btn btn-outline-primary">Julio</button>
+            <button type="button" class="btn btn-outline-primary">Agosto</button>
+            <button type="button" class="btn btn-outline-primary">Septiembre</button>
+            <button type="button" class="btn btn-outline-primary">Octubre</button>
+            <button type="button" class="btn btn-outline-primary">Noviembre</button>
+            <button type="button" class="btn btn-outline-primary">Diciembre</button>
+        </div>
+
+        
+        <div class="col-12 d-flex mt-4">
+            <!-- Gráfico de Google Charts -->
+            <div id="google-chart-container">
+                <div id="google-piechart" style="width: 600px; height: 600px;"></div>
+            </div>
+        
+            <!-- Detalle Categoria -->
+            <div class="ml-4" id="detalle_categoria">
+                <h5>Detalles de la Categoría</h5>
+                <p>Selecciona una categoria para ver sus detalles.</p>
+            </div>
+            
+            <div class="alert alert-warning" role="alert" id="mensaje-resultados">
+                No hay datos registrados para este mes.
+            </div>
+        </div>
+
+        <!-- Leyenda del gráfico 
+        <div class="ml-4 d-flex flex-column align-items-start" style="margin-left: 20px;">
+            <span style="color: #FF6384;"><i class="bi bi-cart"></i> Compras</span>
+            <span style="color: #36A2EB;"><i class="bi bi-cash-stack"></i> Deuda</span>
+            <span style="color: #FFCE56;"><i class="bi bi-house"></i> Vivienda</span>
+            <span style="color: #4BC0C0;"><i class="bi bi-scissors"></i> Belleza</span>
+        </div>
+        -->
+        
+        <!-- Detalle de Ingresos -->
+        <div class="col-12 mt-4" id="detalle_ingresos">
+            <h5>Detalles de Ingresos</h5>
+            <div id="ingresos-container"></div> <!-- Contenedor para los ingresos -->
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    .compras {
+        color: #FF6384;
+    }
+    .deuda {
+        color: #36A2EB;
+    }
+    .vivienda {
+        color: #FFCE56;
+    }
+    .belleza {
+        color: #4BC0C0;
+    }
+    #detalle_categoria {
+        margin-top: 8%;
+    }
+    .active {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .ciclo {
+        margin-left: 4%;
+    }
+
+    .selector {
+        margin-left: 2%;
+    }
+    .btn.selected {
+        background-color: #007bff; 
+        color: white;
+    }
+    .btn.disabled {
+        pointer-events: none; /* Desactiva los clicks */
+        opacity: 0.5;
+    }
+    .ingreso-item {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+
+    // Captura de los botones de ciclo
+    const btnMensual = document.getElementById('btn-mensual');
+    const btnAnual = document.getElementById('btn-anual');
+
+    // Captura los botones de Gastos e Ingresos
+    const btnGastos = document.getElementById('btn-gastos');
+    const btnIngresos = document.getElementById('btn-ingresos');
+    
+    // Obtén la URL actual
+    const url = window.location.href;
+
+    // Verifica si la URL contiene 'gastos' o 'ingresos'
+    if (url.includes('gastos')) {
+        btnGastos.classList.add('active');
+        btnIngresos.classList.remove('active');
+    } else if (url.includes('ingresos')) {
+        btnIngresos.classList.add('active');
+        btnGastos.classList.remove('active');
+    }
+
+    function obtenerTipoActivo() {
+
+            if (btnGastos.classList.contains('active')) {
+                return 'gastos';
+            } else if (btnIngresos.classList.contains('active')) {
+                return 'ingresos';
+            }
+            return null;  // Por si ninguno está activo
+        }
+
+    var contexto = JSON.parse('{{ context|escapejs }}');
+    var ingresos = contexto.ingresos;
+    var gastos = contexto.gastos;
+    var ingresosPorCategoria = contexto.ingresos_por_categoria;
+    var gastosPorCategoria = contexto.gastos_por_categoria;
+    var resultadosPorCategoria;
+    var tituloGrafico;
+     
+    // Categorias con sus Iconos y Colores
+    const categoriaProps = {
+        'Venta': { icon: 'bi bi-cash-stack', color: '#FF6384' },
+        'Salario': { icon: 'bi bi-wallet', color: '#36A2EB' },
+        'Bono': { icon: 'bi bi-gift', color: '#FFCE56' },
+        'Alquiler': { icon: 'bi bi-house', color: '#4BC0C0' },
+        'Ganancias': { icon: 'bi bi-cash', color: '#9966FF' },
+        'Otros': { icon: 'bi bi-box', color: '#FF9F40' },
+        'Comisiones': { icon: 'bi bi-coin', color: '#FF4500' },
+        'Inmueble': { icon: 'bi bi-house-door', color: '#FFA07A' },
+        'Expensas': { icon: 'bi bi-credit-card', color: '#FFD700' } 
+
+    };
+
+    const ingresosContainer = document.getElementById('ingresos-container');
+    const tituloElement = document.querySelector('#detalle_ingresos h5');
+
+    const urlParts2 = window.location.pathname.split('/');
+    const tipo = urlParts2[3]; // 'ingresos' o 'gastos'
+    const anio = urlParts2[4]; // '2024'
+    const mes = parseInt(urlParts2[5]); // '0' para anual
+
+    // Meses para mostrar en el título
+    const meses2 = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    // Arma el título
+    let titulo = '';
+    if (tipo === 'ingresos' || tipo === 'gastos') {
+        if (mes === 0) {
+            titulo = `Detalles de ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} Anuales`;
+        } else {
+            titulo = `Detalles de ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} de ${meses2[mes - 1]}`;
+        }
+    }
+    tituloElement.innerText = titulo;
+
+    // Función para mostrar los datos
+    function mostrarDatos(datos) {
+        // Verifica si hay datos
+        if (datos.length > 0) {
+            datos.forEach(item => {
+                // Crea el div para cada ingreso/gasto
+                const itemElement = document.createElement('div');
+                itemElement.className = 'ingreso-item d-flex align-items-center mb-2';
+
+                // Crea el ícono
+                const iconProps = categoriaProps[item.categoria__nombre] || { icon: 'bi bi-question-circle', color: '#000' };
+                const icon = document.createElement('i');
+                icon.className = iconProps.icon;
+                icon.style.marginRight = '8px';
+                icon.style.color = iconProps.color;
+
+                itemElement.appendChild(icon);
+
+                // Crea el contenido del ingreso/gasto
+                const content = document.createElement('div');
+                content.innerHTML = `
+                    <div>
+                        <strong>Categoría:</strong> ${item.categoria__nombre}<br>
+                        <strong>Nombre:</strong> ${item.nombre}<br>
+                        <strong>Fecha:</strong> ${item.fecha}<br>
+                        <strong>Monto:</strong> $${item.monto}<br>
+                    </div>
+                `;
+                itemElement.appendChild(content);
+
+                // Añade el ingreso/gasto al contenedor
+                ingresosContainer.appendChild(itemElement);
+            });
+        } else {
+            // Si no hay datos, muestra un mensaje
+            ingresosContainer.innerHTML = '<p>No hay datos registrados para este mes.</p>';
+        }
+    }
+
+    if (tipo === 'ingresos') {
+        mostrarDatos(ingresos);
+    } else if (tipo === 'gastos') {
+        mostrarDatos(gastos);
+    }
+
+    // Muestra el titulo del grafico que corresponda segun el tipo de datos (ingresos o gastos)
+    if (Array.isArray(ingresosPorCategoria) && ingresosPorCategoria.length > 0) {
+        resultadosPorCategoria = ingresosPorCategoria;
+        tituloGrafico = "Distribucion de Ingresos";
+    } else if (Array.isArray(gastosPorCategoria) && gastosPorCategoria.length > 0) {
+        resultadosPorCategoria = gastosPorCategoria;
+        tituloGrafico = "Distribucion de Gastos";
+    } else {
+        console.log("No hay datos disponibles en ingresos o gastos por categoría");
+    }
+
+    
+
+    // Configuración del gráfico de Google Charts
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Categoría');
+    data.addColumn('number', 'Porcentaje');
+    data.addColumn({type: 'string', role: 'tooltip', p: {'html': true}});
+
+    // Verifica que resultadosPorCategoria no sea undefined y sea un array
+    if (Array.isArray(resultadosPorCategoria)) {
+        resultadosPorCategoria.forEach(function(item) {
+            var tooltipContent = `
+                <div>
+                    <strong>Categoría: ${item.categoria__nombre}</strong><br>
+                    Monto: $${item.total}<br>
+                    Porcentaje: ${item.porcentaje.toFixed(2)}%
+                </div>`;
+            data.addRow([item.categoria__nombre, item.porcentaje, tooltipContent]);
+        });
+    } else {
+        console.error("resultadosPorCategoria no es un array:", resultadosPorCategoria);
+    }
+
+    var options = {
+        title: tituloGrafico,
+        pieSliceText: 'percentage',
+        slices: {
+            0: { color: '#FF6384' },
+            1: { color: '#36A2EB' },
+            2: { color: '#FFCE56' },
+            3: { color: '#4BC0C0' }
+        },
+        legend: { position: 'right', alignment: 'center' },
+        tooltip: { isHtml: true }
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('google-piechart'));
+    chart.draw(data, options);
+
+    // Captura de clic en el gráfico o la leyenda
+    google.visualization.events.addListener(chart, 'select', function() {
+        var selectedItem = chart.getSelection()[0];
+        if (selectedItem) {
+            var category = data.getValue(selectedItem.row, 0); // Obtiene la categoría seleccionada
+            var percentage = data.getValue(selectedItem.row, 1); // Obtiene el porcentaje
+            var tooltipContent = data.getValue(selectedItem.row, 2); // Obtiene el monto (tooltip)
+
+            // Extrae el monto desde el tooltipContent
+            var monto = tooltipContent.match(/\$([0-9,]+)/)[0];
+
+            // Actualiza el div de detalles con la información seleccionada
+            document.getElementById('detalle_categoria').innerHTML = `
+                <h5>Detalles de la Categoría</h5>
+                <p><strong>Categoría:</strong> ${category}</p>
+                <p><strong>Porcentaje:</strong> ${percentage.toFixed(2)}%</p>
+                <p><strong>Monto:</strong> ${monto}</p>
+            `;
+        }
+    });
+}
+
+// Captura todos los botones de los meses
+const botonesMeses = document.querySelectorAll('#botones-meses .btn');
+
+// Mapea los nombres de los meses a sus valores numéricos (1 - Enero, 12 - Diciembre)
+const meses = {
+    'Enero': 1,
+    'Febrero': 2,
+    'Marzo': 3,
+    'Abril': 4,
+    'Mayo': 5,
+    'Junio': 6,
+    'Julio': 7,
+    'Agosto': 8,
+    'Septiembre': 9,
+    'Octubre': 10,
+    'Noviembre': 11,
+    'Diciembre': 12
+};
+
+// Obtiene el mes desde la URL
+const urlParts = window.location.pathname.split('/');
+const mesUrl = parseInt(urlParts[urlParts.length - 2]);
+
+
+// Establece el botón activo de los Meses según el mes en la URL
+if(mesUrl){
+    const mesSeleccionado = Object.keys(meses).find(mes => meses[mes] === mesUrl);
+    if (mesSeleccionado) {
+        const botonActivo = Array.from(botonesMeses).find(btn => btn.textContent.trim() === mesSeleccionado);
+        if (botonActivo) {
+            botonActivo.classList.add('active');
+        }
+    }
+}
+
+// Si el Reporte es Anual desactivo botones de meses y Activo boton Anual
+if(mesUrl==0){
+    btnMensual.classList.remove('active') // saco clase active del boton mensual
+    toggleMonthButtons(true); // Desactiva los botones de meses
+
+    btnAnual.classList.add('active') // agrego clase active al boton anual
+}
+// si el Reporte es Mensual Activo boton Mensual
+if(mesUrl>=1 && mesUrl<=12)
+{
+    btnMensual.classList.add('active');
+}
+// Itera sobre cada botón de mes y añade un evento para capturar el clic
+botonesMeses.forEach(boton => {
+    boton.addEventListener('click', function(event) {
+        event.preventDefault();
+        const mesSeleccionado = this.textContent.trim();  // Captura el texto del mes
+        const mesNumerico = meses[mesSeleccionado];  // Obtén el valor numérico del mes
+        const tipo = obtenerTipoActivo();  // Obtiene si es 'gastos' o 'ingresos'
+
+        if (mesNumerico) {
+            // Obtiene el año actual
+            const anioActual = new Date().getFullYear();
+
+            // Redirige a la URL 
+            const url = `/ver/reporteFinanciero/${tipo}/${anioActual}/${mesNumerico}/`;
+            window.location.href = url;  // Redirige a la nueva URL
+        }
+    });
+});
+
+// Comprobar si hay ingresos
+var contexto = JSON.parse('{{ context|escapejs }}');
+var hayResultados = contexto.hay_resultados;
+
+// Lógica para mostrar/ocultar elementos
+if (hayResultados) {
+    document.getElementById('google-chart-container').style.display = 'block';
+    document.getElementById('detalle_categoria').style.display = 'block'; // Mostrar detalle si hay ingresos
+    document.getElementById('mensaje-resultados').style.display = 'none';  // Ocultar mensaje si hay ingresos
+} else {
+    document.getElementById('google-chart-container').style.display = 'none';  // Ocultar gráfico si no hay ingresos
+    document.getElementById('detalle_categoria').style.display = 'none'; // Ocultar detalle si no hay ingresos
+    document.getElementById('mensaje-resultados').style.display = 'block';  // Mostrar mensaje
+}
+
+
+// Captura de los botones de Gastos e Ingresos
+const botonesGastosIngresos = document.querySelectorAll('.btn-group.selector button');
+
+// Itera sobre cada botón y añade un evento para capturar el clic
+botonesGastosIngresos.forEach(boton => {
+    boton.addEventListener('click', function() {
+        // Elimina la clase 'selected' de todos los botones
+        botonesGastosIngresos.forEach(btn => btn.classList.remove('selected'));
+        
+        // Agrega la clase 'selected' al botón que fue clickeado
+        this.classList.add('selected');
+    });
+});
+
+// Captura de los botones de Ciclo (Mensual y Anual)
+const botonesCiclo = document.querySelectorAll('.btn-group.selector + .btn-group button');
+
+// Itera sobre cada botón y añade un evento para capturar el click
+botonesCiclo.forEach(boton => {
+    boton.addEventListener('click', function() {
+        // Elimina la clase 'selected' de todos los botones
+        botonesCiclo.forEach(btn => btn.classList.remove('selected'));
+        
+        // Agrega la clase 'selected' al botón que fue clickeado
+        this.classList.add('selected');
+    });
+});
+
+
+
+// Función para activar/desactivar botones de meses
+function toggleMonthButtons(isAnnual) {
+    botonesMeses.forEach(button => {
+        button.disabled = isAnnual; // Bloquea los botones si es anual
+        button.classList.toggle('disabled', isAnnual); // Agrega clase para deshabilitar estilos
+    });
+}
+
+// Evento para boton Mensual
+btnMensual.addEventListener('click', function() {
+    toggleMonthButtons(false); // Activa los botones de meses
+    btnAnual.classList.remove('active'); // Despinta el botón anual
+});
+// Evento para boton Anual
+btnAnual.addEventListener('click', function() {
+    const anioActual = new Date().getFullYear();
+    const tipo = obtenerTipoActivo();  // Obtiene si es 'gastos' o 'ingresos'
+    const url = `/ver/reporteFinanciero/${tipo}/${anioActual}/0/`;
+            window.location.href = url;  // Redirige a la nueva URL
+});
+
+
+// Evento para botón Gastos
+btnGastos.addEventListener('click', function() {
+    btnIngresos.classList.remove('active');
+    btnGastos.classList.add('active'); // Asegúrate de activar el botón de Gastos
+
+    const anioActual = new Date().getFullYear();
+
+    // Obtiene el mes desde la URL
+    const urlParts = window.location.pathname.split('/');
+    const mesSeleccionado = parseInt(urlParts[urlParts.length - 2]);
+    console.log("mes elegido", mesSeleccionado);
+
+    let url;
+    if (isNaN(mesSeleccionado)) {
+        console.log("es anual");
+        url = `/ver/reporteFinanciero/gastos/${anioActual}/0/`;
+    } else { 
+        console.log("es mensual");
+        url = `/ver/reporteFinanciero/gastos/${anioActual}/${mesSeleccionado}/`;
+    }
+    window.location.href = url;  // Redirige a la nueva URL
+});
+
+// Evento para botón Ingresos
+btnIngresos.addEventListener('click', function() {
+    btnGastos.classList.remove('active');
+    btnIngresos.classList.add('active');
+
+    const anioActual = new Date().getFullYear();
+    const urlParts = window.location.pathname.split('/');
+    const mesSeleccionado = parseInt(urlParts[urlParts.length - 2]);
+
+    let url;
+
+    if (isNaN(mesSeleccionado)) {
+        url = `/ver/reporteFinanciero/ingresos/${anioActual}/0/`;
+    } else {
+        url = `/ver/reporteFinanciero/ingresos/${anioActual}/${mesSeleccionado}/`;
+    }
+    window.location.href = url;  // Redirige a la nueva URL
+});
+</script>
+
+{% endblock %}

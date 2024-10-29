@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, IngresoView, EliminarIngreso, ObtenerIngresoView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, IngresoView, EliminarIngreso, ObtenerIngresoView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -21,6 +21,10 @@ urlpatterns = [
     path('ingresos/obtener/<int:ingreso_pk>/', ObtenerIngresoView.as_view(), name='obtener_ingreso'),
     path('ingresos/editar/<int:ingreso_pk>/', EditarIngresoView.as_view(), name='editar_ingreso'),
 
+    # Reporte Financiero
+    path('ver/reporteFinanciero/<str:tipo>/<int:anio>/<int:mes>/', ReporteFinancieroView.as_view(), name='reporte_financiero'),
+    
+    # Saldo Actual y Futuro
     path('saldo-actual/', ObtenerSaldoActualView.as_view(), name='saldo_actual'),
     path('saldo-futuro/', ObtenerSaldoFuturoView.as_view(), name='saldo_futuro'),
 

@@ -1,11 +1,14 @@
+from datetime import date
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db.models import Sum
 from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto
 from django.utils import timezone
 from django.views import View
-from django.db.models import Sum
+from decimal import Decimal
 
 
 def home(request):
@@ -242,6 +245,167 @@ class EliminarGastoView(View):
         # Redireccionamos a la vista de registrar_gasto
         return redirect('registrar_gasto')
 
+
+
+####################################################################################################
+####################################################################################################
+#  Reporte Financiero
+####################################################################################################
+####################################################################################################
+
+class ReporteFinancieroView(View):
+    def get(self, request, tipo, anio=None, mes=None):
+        # Busco la persona (reemplaza esto por la persona autenticada en la aplicación)
+        persona = get_object_or_404(Persona, pk=1)
+
+        if tipo == 'ingresos':
+            context = self.obtener_ingresos(persona, anio, mes)
+        elif tipo == 'gastos':
+            context = self.obtener_gastos(persona, anio, mes)
+        else:
+            # Si el tipo no es válido
+            error = "Tipo de reporte no válido"
+            context = {
+                'error': error,
+            }
+            return render(request, 'reporte_financiero.html', {'context': context})
+
+        # Función para serializar objetos que no son JSON serializables
+        def serialize_value(value):
+            if isinstance(value, Decimal):
+                return float(value)  # Convierte Decimal a float
+            if isinstance(value, date):
+                return value.isoformat()  # Convierte date a cadena en formato ISO
+            return value  # Retorna el valor tal como está
+
+        # Serializa los valores del contexto
+        for key in context:
+            if isinstance(context[key], list):
+                for item in context[key]:
+                    for k, v in item.items():
+                        item[k] = serialize_value(v)
+
+        # Convierte el contexto a JSON
+        context_json = json.dumps(context)
+        return render(request, 'reporte_financiero.html', {'context': context_json})
+
+    def obtener_ingresos(self, persona, anio, mes):
+        # Obtengo la lista de ingresos que no estén dados de baja
+        ingresos = Ingreso.objects.filter(bl_baja=False, persona=persona)
+
+        # Filtrar por año si se seleccionó uno
+        if anio:
+            ingresos = ingresos.filter(fecha__year=anio)
+
+        # Filtrar por mes si se seleccionó uno
+        if mes > 0 and mes <= 12:
+            ingresos = ingresos.filter(fecha__month=mes)
+        elif mes != 0:
+            # Si mes es distinto de cero, significa que no se seleccionó ni "Reporte Anual" (mes=0) ni ningun mes correcto
+            return {"error": "Mes incorrecto"}
+
+        # Calculo el monto total de ingresos
+        total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()
+
+        # Verifico si hay ingresos para calcular los porcentajes
+        if total_global > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de ingresos por categoría y porcentaje
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen ingresos
+            categorias_de_ingresos = [ingreso['categoria__nombre'] for ingreso in ingresos_por_categoria]
+
+            # Crear un QuerySet que obtenga directamente las categorías de ingresos
+            if categorias_de_ingresos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_ingresos, bl_baja=False)
+
+        # Si no hay ingresos, asigno un QuerySet vacío
+        else:
+            ingresos_por_categoria = []
+            hay_resultados = False 
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'ingresos': list(ingresos.values('id', 'nombre','descripcion', 'monto', 'fecha', 'categoria__nombre')),
+            'gastos': [],
+            'categorias': list(categorias.values()),  
+            'ingresos_por_categoria': list(ingresos_por_categoria),
+            'hay_resultados': hay_resultados,
+        }
+        return context
+
+    def obtener_gastos(self, persona, anio, mes):
+        # Obtengo la lista de gastos que no estén dados de baja
+        gastos = Gasto.objects.filter(bl_baja=False, persona=persona)
+
+        # Filtrar por año si se seleccionó uno
+        if anio:
+            gastos = gastos.filter(fecha__year=anio)
+
+        # Filtrar por mes si se seleccionó uno
+        if mes > 0 and mes <= 12:
+            gastos = gastos.filter(fecha__month=mes)
+        elif mes != 0:
+            # Si mes es distinto de cero, significa que no se seleccionó ni "Reporte Anual" (mes=0) ni ningun mes correcto
+            return {"error": "Mes incorrecto"}
+
+        # Calculo el monto total de gastos
+        total_global = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()  
+
+        # Verifico si hay gastos para calcular los porcentajes
+        if total_global > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de gastos por categoría y porcentaje
+            gastos_por_categoria = (
+                gastos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen gastos
+            categorias_de_gastos = [gasto['categoria__nombre'] for gasto in gastos_por_categoria]
+
+            # Crear un QuerySet que obtenga directamente las categorías de gastos
+            if categorias_de_gastos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_gastos, bl_baja=False)
+
+        # Si no hay gastos, asigno un QuerySet vacío
+        else:
+            gastos_por_categoria = []
+            hay_resultados = False 
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'gastos': list(gastos.values('id', 'nombre','observaciones', 'monto', 'fecha', 'categoria__nombre')),
+            'ingresos': [],
+            'categorias': list(categorias.values()),  
+            'gastos_por_categoria': list(gastos_por_categoria),
+            'hay_resultados': hay_resultados,
+        }
+        return context
+
+
+
+#
+# Obtener Saldo Actual y Futuro
+#
 
 class ObtenerSaldoActualView(View):
     def get(self, request):
