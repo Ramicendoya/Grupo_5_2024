@@ -44,6 +44,7 @@ class Gasto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, null=True, blank=True)
     bl_fijo = models.BooleanField(default=False)
     bl_baja = models.BooleanField(default=False)
+    fecha = models.DateField()
     metodo_pago = models.TextField(null=False, blank=False)
     fecha = models.DateField()
     nombre = models.CharField(max_length=100, null=True, blank=True)

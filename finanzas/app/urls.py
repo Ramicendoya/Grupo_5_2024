@@ -13,9 +13,11 @@ urlpatterns = [
     path('promociones/', PromocionesView.as_view(), name='promociones'),
     # Gastos
     path('registrar/gasto/', GastoView.as_view(), name='registrar_gasto'),
-    path('registrar/gasto/bajaGasto', EliminarGastoView.as_view(), name='baja_Gasto'),
     path('registrar/<str:origen>/cargarCategoria/', CategoriaView.as_view(), name='cargar_categoria'),
-    
+    path('gastos/eliminar/<int:gasto_pk>/', EliminarGastoView.as_view(), name='eliminar_gasto'),
+    path('gastos/obtener/<int:gasto_pk>/', ObtenerGastoView.as_view(), name='obtener_gasto'),
+    path('gastos/editar/<int:gasto_pk>/', EditarGastoView.as_view(), name='editar_gasto'),
+
 
     # Registrar Ingresos
     path('registrar/ingreso/', IngresoView.as_view(), name='registrar_ingreso'),

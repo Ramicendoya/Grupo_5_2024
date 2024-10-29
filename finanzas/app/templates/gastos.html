@@ -9,25 +9,41 @@
             {% csrf_token %}
             <div class="row">
 
-                <!-- Nombre del gastos-->
-                <div class="col-md-4 mb-3">
-                    <label for="nombre_gasto" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="nombre_gasto" name="nombre_gasto" required>
-                </div>
-                <!-- Categorias -->
-                <div class="col-md-4 mb-3">
-                    <label for="categoria" class="form-label">Categoría</label>
-                    <div class="input-group">
-                        <select class="form-select" id="categoria" name="categoria" required>
-                            {% for categoria in categorias %}
-                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="add_category">+</button>
+                    <!-- Nombre del gastos-->
+                    <div class="col-md-4 mb-3">
+                        <label for="nombre_gasto" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_gasto" name="nombre_gasto" required>
                     </div>
-                </div>
-              
-       
+                    <!-- Categorias -->
+                    <div class="col-md-4 mb-3">
+                        <label for="categoria" class="form-label">Categoría</label>
+                        <div class="input-group">
+                            <select class="form-select" id="categoria" name="categoria" required>
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="add_category">+</button>
+                        </div>
+                    </div>
+                     <!-- Monto -->
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex justify-content-between ">
+                            <label for="monto" class="form-label">Monto</label>
+                            <div class="d-flex align-items-center">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="gasto_fijo" name="tipo_gasto" value="1" onchange="toggleFields()" >
+                                </div>
+                                <span class="ms-2">Fijo</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="float" class="form-control" id="monto" name="monto" required maxlength="14">
+                        </div>
+                    </div>     
+                    
+
+
             </div>
 
             
@@ -39,62 +55,61 @@
                         <option value="efectivo">Efectivo</option>
                         <option value="tarjeta">Tarjeta</option>
                     </select>
-                </div>
-
-
-                <!-- Descripcion -->
-            <!--<div class="col-md-4 mb-3">
-                    <label for="descripcion" class="form-label">Descripción</label>
-                    <input type="text" class="form-control" id="descripcion" name="descripcion">
-                </div>
-            -->
-                 <!-- Monto -->
+                </div>      
+                 <!--Frecuencia de gastos-->
+                 <div class="col-md-4 mb-3">
+                    <label for="frecuencia" class="form-label">Frecuencia</label>
+                    <select class="form-select" id="frecuencia" name="frecuencia" onchange="togglePersonalizado()" required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="mensual">Mensual</option>
+                        <option value="anual">Anual</option>
+                        <option value="personalizado">Personalizado (en días)</option>
+                    </select>
                 
-          
-            
-
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label for="monto" class="form-label">Monto</label>
-                        <div class="d-flex align-items-center">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="gasto_fijo" name="tipo_gasto" value="1" onchange="toggleFields()">
-                            </div>
-                            <span class="ms-2">Fijo</span>
-                        </div>
+                    <div id="personalizadoContainer" class="d-none mt-2">
+                        <label for="diasPersonalizados" class="form-label">Número de días:</label>
+                        <input type="number" class="form-control" id="diasPersonalizados" name="diasPersonalizados" placeholder="Introduce el número de días" min="1" >
                     </div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="monto" name="monto" required>
-                    </div>
-                </div>                 
-            </div>
-       
-            <div class="row">
-             
-                <!-- Frecuencia de gastos -->
+                </div>
+                <!--
                 <div class="col-md-4 mb-3 ">
                     <label for="frecuencia_gastos" class="form-label">Frecuencia de Gastos</label>
                     <input type="text" class="form-control" id="frecuencia_gastos" name="frecuencia_gastos">
                 </div>
+                -->
 
-               
-
-                <!-- Duracion -->
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label for="duracion" class="form-label">Duración</label>
-                        <div class="d-flex align-items-center">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="duracionSwitch" name="duracionSwitch">
+                <!--Duración-->
+                    <div class="col-md-4 mb-3">
+                        <div class="row">
+                            <!-- Desde -->
+                            <div class="col"> 
+                                <div class="d-flex flex-column mb-2">
+                                    <label for="fechaDesde" class="form-label"  >Desde</label>
+                                    <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" placeholder="" required>
+                                </div>
                             </div>
-                            <span class="ms-2">Indefinido</span>
-                        </div>
+                    
+                            <!-- Hasta -->
+                            <div class="col">
+                                <div class="d-flex flex-column mt-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label for="fechaHasta" class="form-label mb-0">Hasta</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="indefinidoSwitch1" value="1" name="indefinidoSwitch1" onchange="toggleFields1()"  >
+                                            <label class="form-check-label" for="indefinidoSwitch1">Indefinido</label>
+                                        </div>
+                                    </div>
+                                    <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" placeholder="" required>
+                                </div>
+                            </div>
+                        </div> 
                     </div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="duracion" name="duracion" placeholder="">
-                    </div>
-                </div>                
+                <!--Fin div duracion-->
+                    
             </div>
+       
 
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg">Agregar</button>
@@ -106,10 +121,10 @@
     <div class="form-section">
         <ul class="nav nav-tabs" id="gastosTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="gastos-fijos-tab" data-bs-toggle="tab" data-bs-target="#gastos-fijos" type="button" role="tab" aria-controls="gastos-fijos" aria-selected="true">gastos Fijos</button>
+                <button class="nav-link active" id="gastos-fijos-tab" data-bs-toggle="tab" data-bs-target="#gastos-fijos" type="button" role="tab" aria-controls="gastos-fijos" aria-selected="true">Gastos Fijos</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="gastos-variables-tab" data-bs-toggle="tab" data-bs-target="#gastos-variables" type="button" role="tab" aria-controls="gastos-variables" aria-selected="false">gastos Variables</button>
+                <button class="nav-link" id="gastos-variables-tab" data-bs-toggle="tab" data-bs-target="#gastos-variables" type="button" role="tab" aria-controls="gastos-variables" aria-selected="false">Gastos Variables</button>
             </li>
         </ul>
         <div class="tab-content" id="gastosTabsContent">
@@ -118,7 +133,7 @@
                     <div class="container mt-5">
                         <h2>Tabla de Gastos Fijos</h2>
                         <div class="table-responsive">
-                            <table id="miTabla" class="table table-striped table-bordered display">
+                            <table id="gastos_fijos" class="table table-striped table-bordered display">
                                 <thead>
                                     <tr>
                                         <!-- Definimos tres columnas -->
@@ -135,8 +150,12 @@
                                         <td>{{ gasto.observaciones }}</td>
                                         <td>${{ gasto.monto }}</td>
                                         <td>
-                                           <a href="baja_Gasto"> <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button> </a>
-
+                                            <!--Boton Ver-->
+                                           <button type="button" class="btn btn-outline-primary btn-sm" ><i class="bi bi-eye"></i></button>
+                                           <!--Boton Editar-->
+                                           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-gasto-id="{{ gasto.id }}" onclick="abrirModalEditar('{{gasto.id}}')"><i class="bi bi-pencil"></i></button>
+                                            <!--Boton Eliminar-->
+                                            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_gasto' gasto_pk=gasto.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -148,23 +167,41 @@
             
             <div class="tab-pane fade" id="gastos-variables" role="tabpanel" aria-labelledby="gastos-variables-tab">
                 <!-- Listado de gastos Variables -->
-                {% for gasto in gastos_variables %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <span> {{ gasto.categoria.nombre }} -{{gasto.observaciones}} -${{ gasto.monto }} -  </span>:
-                    </div>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></button>
-                        <form action="" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i></button>
-                        </form>
+
+                <div class="container mt-5">
+                    <h2>Tabla de Gastos Variables</h2>
+                    <div class="table-responsive">
+                        <table id="gastos_variables" class="table table-striped table-bordered display">
+                            <thead>
+                                <tr>
+                                    <!-- Definimos tres columnas -->
+                                    <th>Categoria</th>
+                                    <th>Descripcion</th>
+                                    <th>Monto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for gasto in gastos_variables %}
+                                <tr>
+                                    <td>{{ gasto.categoria.nombre }}</td>
+                                    <td>{{ gasto.observaciones }}</td>
+                                    <td>${{ gasto.monto }}</td>
+                                    <td>
+                                       <!--Boton Ver-->
+                                       <button type="button" class="btn btn-outline-primary btn-sm" ><i class="bi bi-eye"></i></button>
+                                       <!--Boton Editar-->
+                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-gasto-id="{{ gasto.id }}" onclick="abrirModalEditar('{{gasto.id}}')"><i class="bi bi-pencil"></i></button>
+                                        <!--Boton Eliminar-->
+                                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_gasto' gasto_pk=gasto.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                {% empty %}
-                <div class="p-3">No hay gastos variables registrados.</div>
-                {% endfor %}
+
             </div>
         </div>
     </div>
@@ -173,7 +210,16 @@
 <!--Tablas-->
 <script>
     $(document).ready(function() {
-        $('#miTabla').DataTable({
+        $('#gastos_fijos').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#gastos_variables').DataTable({
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
             }
@@ -197,6 +243,80 @@
      
     }
 </style>
+
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabel">Editar Gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombreModal" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreModal" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="montoModal" class="form-label">Monto</label>
+                        <input type="number" class="form-control" id="montoModal" name="monto" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoriaModal" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoriaModal" name="categoria" required>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                        <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="tipo_gastoModal" name="tipo_gastoModal">
+                        <label class="form-check-label" for="tipo_gastoModal">gasto Fijo</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminacion -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro de que desea eliminar este ingreso?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" action="" method="post" style="display: inline">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <!-- Modal -->
 
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -240,24 +360,96 @@
 <script>
     function toggleFields() {
         const gastosFijo = document.getElementById('gasto_fijo');
-        const frecuenciagastos = document.getElementById('frecuencia_gastos');
-        const duracionSwitch = document.getElementById('duracionSwitch');
-        const duracionInput = document.getElementById('duracion');
+        const frecuenciagastos = document.getElementById('frecuencia');
+        const fechadesde = document.getElementById('fechaDesde');
+        const fechasta = document.getElementById('fechaHasta');
+        const switchhasta=document.getElementById('indefinidoSwitch1');
+        //const duracionSwitch = document.getElementById('duracionSwitch');
+        //const duracionInput = document.getElementById('duracion');
+        
+        
 
         // Habilitar o deshabilitar los campos según si el checkbox está marcado o no
         if (gasto_fijo.checked) {
             frecuenciagastos.disabled = false;
-            duracionSwitch.disabled = false;
-            duracionInput.disabled = false;
+            fechadesde.disabled = false;
+            switchhasta.disabled = false;
+            fechasta.disabled = false;
+
+            //duracionSwitch.disabled = false;
+            //duracionInput.disabled = false;
         } else {
             frecuenciagastos.disabled = true;
-            duracionSwitch.disabled = true;
-            duracionInput.disabled = true;
-        }
+            fechadesde.disabled = true;
+            fechasta.disabled = true;
+            switchhasta.disabled = true;
+            //duracionSwitch.disabled = true;
+            //duracionInput.disabled = true;
+        }       
+
+
     }
+
 
     // Llama a la función para asegurarse de que los campos estén correctamente configurados al cargar la página
     window.onload = toggleFields;
+
+    function toggleFields1(){
+        const switchhasta=document.getElementById('indefinidoSwitch1');
+        const fechasta = document.getElementById('fechaHasta');
+        if(switchhasta.checked){
+            fechasta.disabled = true;
+
+        }else{
+            
+            fechasta.disabled = false;
+        }
+    }
+
+    function togglePersonalizado() {
+        const frecuencia = document.getElementById('frecuencia');
+        const personalizadoContainer = document.getElementById('personalizadoContainer');
+
+        // Muestra el contenedor de días personalizados solo si se selecciona la opción correspondiente
+        if (frecuencia.value === 'personalizado') {
+            personalizadoContainer.classList.remove('d-none');
+        } else {
+            personalizadoContainer.classList.add('d-none');
+        }
+    }
+
+    //Funcion para abrir el modal 
+
+    function abrirModalEditar(gastoId) {
+        fetch(`/gastos/obtener/${gastoId}`)
+        
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                // Llena el modal con los datos del gasto
+                document.getElementById('nombreModal').value = data.nombre;
+                document.getElementById('montoModal').value = data.monto;
+                document.getElementById('categoriaModal').value = data.categoria_id;
+                document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+                document.getElementById('tipo_gastoModal').checked = data.bl_fijo;
+
+                // Actualiza el action del formulario para que envíe a la URL de actualizar
+                const form = document.getElementById('formEditarGasto');
+                form.action = `/gastos/editar/${gastoId}/`;
+
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    //Funcion para eliminar gasto
+    function setDeleteFormAction(url) {
+            document.getElementById('deleteForm').action = url;
+    }
+    
+
 </script>
 
 
