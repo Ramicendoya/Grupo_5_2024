@@ -5,7 +5,9 @@ from django.views import View
 from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    
+    # Home
+    path('', Home.as_view(), name='home'),
 
     #Promociones
     path('promociones/', PromocionesView.as_view(), name='promociones'),
