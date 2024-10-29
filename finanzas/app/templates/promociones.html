@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+
+<div class="container mt-5">
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+        <!-- Indicadores -->
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+            <li data-target="#myCarousel" data-slide-to="3"></li>
+        </ol>
+    
+        <!-- Contenido del carrusel -->
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{% static 'img/promocion1.png' %}" class="d-block w-100" alt="Slide 1">
+
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>Título Slide 1</h5>
+                    <p>Descripción del Slide 1.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'img/promocion2.png' %}" class="d-block w-100" alt="Slide 2">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>Título Slide 2</h5>
+                    <p>Descripción del Slide 2.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'img/promocion3.png' %}" class="d-block w-100" alt="Slide 3">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>Título Slide 3</h5>
+                    <p>Descripción del Slide 3.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'img/promocion4.JPG' %}" class="d-block w-100" alt="Slide 4">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>Título Slide 4</h5>
+                    <p>Descripción del Slide 4.</p>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Controles -->
+        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Anterior</span>
+        </a>
+        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Siguiente</span>
+        </a>
+    </div><!--Fin carousel-->
+
+    <div class="form-section">         
+        <div class="container mt-5">
+            <h2>Supermercados</h2>
+            <div class="table-responsive">
+                <table id="promociones" class="table table-striped table-bordered display">
+                    <thead>
+                        <tr>
+                        
+                        <th>Nombre</th>
+                        <th>Pagina Oficial</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    
+                        <tr>
+                        <td>Carrefour</td>
+                        <td><a href="https://www.carrefour.com.ar" target="_blank">Abrir</a></td>
+                        </tr>
+            
+                        <tr>
+                        <td>Disco</td>
+                        <td><a href="https://www.disco.com.ar" target="_blank">Abrir</a></td>
+                        </tr>                    
+                
+                        <tr>
+                        <td>Coto</td>
+                        <td><a href="https://www.disco.com.ar" target="_blank">Abrir</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>        
+    </div>
+
+
+
+
+    
+</div>
+<!-- FinTablas-->
+
+<style>
+    body {
+        background-color: #dfdfdf;
+    }
+    .form-section {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px; 
+        padding: 1%; 
+        margin: 1%; 
+    }
+    #fijo-checkbox{
+        margin-top:20%;
+     
+    }
+</style>
+
+<!--Tablas-->
+
+<script>
+    $(document).ready(function() {
+        $('#promociones').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            },
+            "paging": true,        // Activa la paginación
+            "searching": true,     // Activa la barra de búsqueda
+            "info": true,          // Activa la información sobre la tabla
+            "lengthChange": true,  // Permite cambiar la cantidad de registros mostrados
+        });
+    });
+</script>
+<style>
+    body {
+        background-color: #dfdfdf;
+    }
+    .form-section {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px; 
+        padding: 1%; 
+        margin: 1%; 
+    }
+    #fijo-checkbox{
+        margin-top:20%;
+     
+    }
+</style>
+{% endblock %}
+

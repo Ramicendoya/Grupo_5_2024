@@ -122,6 +122,10 @@ class Home(View):
         context_json = json.dumps(context)
         return render(request, 'home.html', {'context': context_json})
 
+class PromocionesView(View):
+    def get(self, request):
+
+        return render(request, 'promociones.html')
 
 
 class GastoView(View):
