@@ -11,8 +11,103 @@ from django.views import View
 from decimal import Decimal
 
 
-def home(request):
-    return render(request, 'home.html') 
+class Home(View):
+    def get(self, request):
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1)
+             
+        # Obtiene la lista de gastos
+        gastos = Gasto.objects.filter(persona=persona, bl_baja=0)
+
+        # Calculo el monto total de gastos
+        total_global_gastos = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()  
+        hay_resultados = False  # Inicializa la variable de resultados
+
+        # Verifico si hay gastos para calcular los porcentajes
+        if total_global_gastos > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de gastos por categoría y porcentaje
+            gastos_por_categoria = (
+                gastos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global_gastos)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen gastos
+            categorias_de_gastos = [gasto['categoria__nombre'] for gasto in gastos_por_categoria]
+
+            # Creo un QuerySet que obtenga directamente las categorías de gastos
+            if categorias_de_gastos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_gastos, bl_baja=False)
+
+        # Si no hay gastos, asigno un QuerySet vacío
+        else:
+            gastos_por_categoria = []
+
+        # Obtiene la lista de ingresos
+        ingresos = Ingreso.objects.filter(persona=persona, bl_baja=0)
+
+        # Calculo el monto total de ingresos
+        total_global_ingresos = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Verifico si hay ingresos para calcular los porcentajes
+        if total_global_ingresos > 0:
+            hay_resultados = True  # Si hay ingresos, mantengo la variable
+
+            # Filtro y calculo total de ingresos por categoría y porcentaje
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global_ingresos)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen ingresos
+            categorias_de_ingresos = [ingreso['categoria__nombre'] for ingreso in ingresos_por_categoria]
+
+            # Creo un QuerySet que obtenga directamente las categorías de ingresos
+            if categorias_de_ingresos:
+                categorias = categorias | Categoria.objects.filter(nombre__in=categorias_de_ingresos, bl_baja=False)
+
+        # Si no hay ingresos, asigno un QuerySet vacío
+        else:
+            ingresos_por_categoria = []
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'gastos': list(gastos.values('id', 'nombre', 'observaciones', 'monto', 'fecha', 'categoria__nombre')),
+            'ingresos': list(ingresos.values('id', 'nombre','descripcion', 'monto', 'fecha', 'categoria__nombre')),
+            'categorias': list(categorias.values()),  
+            'gastos_por_categoria': list(gastos_por_categoria),
+            'ingresos_por_categoria': list(ingresos_por_categoria),
+            'hay_resultados': hay_resultados,
+        }
+
+        # Función para serializar objetos que no son JSON serializables
+        def serialize_value(value):
+            if isinstance(value, Decimal):
+                return float(value)  # Convierte Decimal a float
+            if isinstance(value, date):
+                return value.isoformat()  # Convierte date a cadena en formato ISO
+            return value  # Retorna el valor tal como está
+
+        # Serializa los valores del contexto
+        for key in context:
+            if isinstance(context[key], list):
+                for item in context[key]:
+                    for k, v in item.items():
+                        item[k] = serialize_value(v)
+
+        # Convierte el contexto a JSON
+        context_json = json.dumps(context)
+        return render(request, 'home.html', {'context': context_json})
 
 
 
@@ -22,7 +117,8 @@ class GastoView(View):
         gastos_fijos = Gasto.objects.filter(bl_fijo=True,bl_baja=0)
         gastos_variables = Gasto.objects.filter(bl_fijo=False,bl_baja=0)
         categorias= Categoria.objects.filter(bl_baja=0)
-        # Crea un contexto para pasar los ingresos a la plantilla
+
+        # Contexto para pasar a la plantilla
         context = {
             'gastos_fijos': gastos_fijos,
             'gastos_variables': gastos_variables,
@@ -255,7 +351,7 @@ class EliminarGastoView(View):
 
 class ReporteFinancieroView(View):
     def get(self, request, tipo, anio=None, mes=None):
-        # Busco la persona (reemplaza esto por la persona autenticada en la aplicación)
+        # Busco la persona
         persona = get_object_or_404(Persona, pk=1)
 
         if tipo == 'ingresos':

@@ -2,13 +2,14 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, IngresoView, EliminarIngreso, ObtenerIngresoView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    
+    # Home
+    path('', Home.as_view(), name='home'),
 
-
-    #Gastos
+    # Gastos
     path('registrar/gasto/', GastoView.as_view(), name='registrar_gasto'),
     path('registrar/gasto/bajaGasto', EliminarGastoView.as_view(), name='baja_Gasto'),
     path('registrar/<str:origen>/cargarCategoria/', CategoriaView.as_view(), name='cargar_categoria'),
