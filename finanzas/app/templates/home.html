@@ -171,8 +171,6 @@
     
 </script>
 
-<!-- Import Google Charts -->
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <!-- Grafico Categorias -->
 <script>
@@ -274,15 +272,22 @@
 <script>
     // Cargar la librería de Google Charts
     google.charts.load('current', { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
+    google.charts.setOnLoadCallback(initializeCharts);
 
     // Obtengo Metas del contexto
     var context = JSON.parse('{{ context|escapejs }}');
-    var metasCumplidas = context.metas_cumplidas;
-    var metasNoCumplidas =  context.metas_no_cumplidas;
+    var metasCumplidas = context.metas_cumplidas || 0; // Asegurarse de que sea un número
+    var metasNoCumplidas = context.metas_no_cumplidas || 0; // Asegurarse de que sea un número
+    var chart; // Variable para guardar la instancia del gráfico
 
-    // Función para dibujar el gráfico
-    function drawChart() {
+    // Inicializa los gráficos y dibuja el gráfico de metas
+    function initializeCharts() {
+        drawMetasChart();
+        // Aquí puedes llamar a otras funciones para dibujar otros gráficos
+    }
+
+    // Función para dibujar el gráfico de metas
+    function drawMetasChart() {
         var data = google.visualization.arrayToDataTable([
             ['Estado', 'Porcentaje'],
             ['Cumplidas', metasCumplidas],
@@ -300,18 +305,24 @@
             tooltip: { isHtml: true }
         };
 
-        var chart = new google.visualization.PieChart(document.getElementById('google-piechart-metas'));
+        // Verifica si el gráfico ya está creado
+        if (!chart) {
+            chart = new google.visualization.PieChart(document.getElementById('google-piechart-metas'));
+        }
+
+        // Dibuja el gráfico
         chart.draw(data, options);
+
+        // Manejo de la visualización del gráfico
+        if (metasCumplidas > 0 || metasNoCumplidas > 0) {
+            document.getElementById('google-chart-container-metas').style.display = 'block';
+            document.getElementById('mensaje-resultados-metas').style.display = 'none'; // Ocultar mensaje si hay resultados
+        } else {
+            document.getElementById('google-chart-container-metas').style.display = 'none'; // Ocultar gráfico si no hay resultados
+            document.getElementById('mensaje-resultados-metas').style.display = 'block'; // Mostrar mensaje
+        }
     }
 
-    // Manejo de la visualización del gráfico
-    if (metasCumplidas !== null) {
-        document.getElementById('google-chart-container-metas').style.display = 'block';
-        document.getElementById('mensaje-resultados-metas').style.display = 'none'; // Ocultar mensaje si hay resultados
-    } else {
-        document.getElementById('google-chart-container-metas').style.display = 'none'; // Ocultar gráfico si no hay resultados
-        document.getElementById('mensaje-resultados-metas').style.display = 'block'; // Mostrar mensaje
-    }
 </script>
 
 {% endblock %}
