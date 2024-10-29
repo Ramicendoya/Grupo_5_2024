@@ -83,7 +83,10 @@
         <div class="col-md-8">
             <div class="card p-3 bg-light">
                 <h5>Históricos de Saldos en los Últimos Meses</h5>
-
+                <!-- Contenedor para el gráfico -->
+                <div class="container">
+                    <div id="saldoChart" style="width: 100%; height: 400px;"></div>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
@@ -274,16 +277,16 @@
     google.charts.load('current', { packages: ['corechart'] });
     google.charts.setOnLoadCallback(initializeCharts);
 
-    // Obtengo Metas del contexto
+    // Obtener Metas del contexto
     var context = JSON.parse('{{ context|escapejs }}');
-    var metasCumplidas = context.metas_cumplidas || 0; // Asegurarse de que sea un número
-    var metasNoCumplidas = context.metas_no_cumplidas || 0; // Asegurarse de que sea un número
+    var metasCumplidas = context.metas_cumplidas || 0;
+    var metasNoCumplidas = context.metas_no_cumplidas || 0;
     var chart; // Variable para guardar la instancia del gráfico
 
     // Inicializa los gráficos y dibuja el gráfico de metas
     function initializeCharts() {
         drawMetasChart();
-        // Aquí puedes llamar a otras funciones para dibujar otros gráficos
+
     }
 
     // Función para dibujar el gráfico de metas
@@ -296,7 +299,7 @@
 
         var options = {
             pieSliceText: 'percentage',
-            pieHole: 0.4, // Esto convierte el gráfico en un gráfico de anillo
+            pieHole: 0.4, // convierte el gráfico en un gráfico de anillo
             slices: {
                 0: { color: '#4CAF50' }, // Color para "Cumplidas"
                 1: { color: '#F44336' }  // Color para "No Cumplidas"
@@ -314,15 +317,75 @@
         chart.draw(data, options);
 
         // Manejo de la visualización del gráfico
-        if (metasCumplidas > 0 || metasNoCumplidas > 0) {
-            document.getElementById('google-chart-container-metas').style.display = 'block';
-            document.getElementById('mensaje-resultados-metas').style.display = 'none'; // Ocultar mensaje si hay resultados
-        } else {
-            document.getElementById('google-chart-container-metas').style.display = 'none'; // Ocultar gráfico si no hay resultados
-            document.getElementById('mensaje-resultados-metas').style.display = 'block'; // Mostrar mensaje
-        }
+        document.getElementById('google-chart-container-metas').style.display = (metasCumplidas > 0 || metasNoCumplidas > 0) ? 'block' : 'none';
+        document.getElementById('mensaje-resultados-metas').style.display = (metasCumplidas > 0 || metasNoCumplidas > 0) ? 'none' : 'block';
+    }
+</script>
+
+
+<!-- Gráfico Histórico de Saldos -->
+<script>
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(initializeCharts);
+
+    // Inicializa los gráficos y dibuja el gráfico de histórico de saldos
+    function initializeCharts() {
+        drawHistoricoSaldosChart();
     }
 
+    // Función para dibujar el gráfico de histórico de saldos
+    function drawHistoricoSaldosChart() {
+        var saldosHistoricos = [
+            { mes: 'Enero', saldo: 500 },
+            { mes: 'Febrero', saldo: 600 },
+            { mes: 'Marzo', saldo: 700 },
+            { mes: 'Abril', saldo: 800 },
+            { mes: 'Mayo', saldo: 650 },
+            { mes: 'Junio', saldo: 900 },
+            { mes: 'Julio', saldo: 1100 },
+            { mes: 'Agosto', saldo: 1000 },
+            { mes: 'Septiembre', saldo: 950 },
+            { mes: 'Octubre', saldo: 1050 },
+            { mes: 'Noviembre', saldo: 1200 },
+            { mes: 'Diciembre', saldo: 1300 }
+        ];
+
+        // Verifica que saldosHistoricos no sea undefined y sea un array
+        if (!Array.isArray(saldosHistoricos) || saldosHistoricos.length === 0) {
+            console.error("saldosHistoricos no tiene datos válidos:", saldosHistoricos);
+            document.getElementById('saldoChart').style.display = 'none'; // Oculta el gráfico si no hay datos
+            document.getElementById('mensaje-resultados-historico-saldos').style.display = 'block'; // Muestra el mensaje
+            return; // Salimos de la función si no hay datos para dibujar
+        }
+
+        // Prepara los datos para el gráfico
+        var data = [['Mes', 'Saldo']];
+        saldosHistoricos.forEach(function(item) {
+            data.push([item.mes, item.saldo]);
+        });
+
+        // Crea la tabla de datos para Google Charts
+        var dataTable = google.visualization.arrayToDataTable(data);
+
+        // Opciones del gráfico
+        var options = {
+            hAxis: {
+                title: 'Mes'
+            },
+            vAxis: {
+                title: 'Saldo'
+            },
+            legend: 'none'
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('saldoChart'));
+        chart.draw(dataTable, options);
+
+        // Mostrar el gráfico
+        document.getElementById('google-chart-container-historico-saldos').style.display = 'block';
+        document.getElementById('mensaje-resultados-historico-saldos').style.display = 'none';
+    }
 </script>
+
 
 {% endblock %}
