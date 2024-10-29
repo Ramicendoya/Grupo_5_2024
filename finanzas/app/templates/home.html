@@ -83,8 +83,9 @@
         <div class="col-md-8">
             <div class="card p-3 bg-light">
                 <h5>Históricos de Saldos en los Últimos Meses</h5>
-                <!-- Contenedor para el gráfico -->
-                <div class="container">
+                
+                <!-- Grafico de Saldos -->
+                <div class="google-chart-container-historico-saldos">
                     <div id="saldoChart" style="width: 100%; height: 400px;"></div>
                 </div>
             </div>
@@ -116,6 +117,7 @@
                     </div>
                 </div>
                 
+                <!-- Gráfico de Metas -->
                 <h5>Porcentaje de Metas Cumplidas</h5>
                 <div class="col-12 d-flex mt-4"> 
                     <div id="google-chart-container-metas">
@@ -325,8 +327,11 @@
 
 <!-- Gráfico Histórico de Saldos -->
 <script>
+    window.onload = function() {
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(initializeCharts);
+    };
+
 
     // Inicializa los gráficos y dibuja el gráfico de histórico de saldos
     function initializeCharts() {
@@ -382,8 +387,12 @@
         chart.draw(dataTable, options);
 
         // Mostrar el gráfico
-        document.getElementById('google-chart-container-historico-saldos').style.display = 'block';
-        document.getElementById('mensaje-resultados-historico-saldos').style.display = 'none';
+        const chartContainer = document.getElementById('google-chart-container-historico-saldos');
+        const messageContainer = document.getElementById('mensaje-resultados-historico-saldos');
+        if (chartContainer && messageContainer) {
+            chartContainer.style.display = 'block';
+            messageContainer.style.display = 'none';
+        }
     }
 </script>
 
