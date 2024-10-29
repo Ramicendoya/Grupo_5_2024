@@ -7,7 +7,8 @@ from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, 
 urlpatterns = [
     path('', views.home, name='home'),
 
-
+    #Promociones
+    path('promociones/', PromocionesView.as_view(), name='promociones'),
     # Gastos
     path('registrar/gasto/', GastoView.as_view(), name='registrar_gasto'),
     path('registrar/gasto/bajaGasto', EliminarGastoView.as_view(), name='baja_Gasto'),
