@@ -34,7 +34,7 @@
 
 <!-- Grafico Categorias -->
 <style>
-    #google-chart-container {
+    #google-chart-container-categorias {
         overflow: hidden; /* Evita que el contenido salga de los límites */
     }
 </style>
@@ -102,19 +102,26 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-12 d-flex mt-4">
-                    <!-- Gráfico de Google Charts -->
-                    <div id="google-chart-container">
-                        <div id="google-piechart" style="width: 400px; height: 400px;"></div>
+                
+                <!-- Gráfico de Categorias -->
+                <div class="col-12 d-flex mt-4"> 
+                    <div id="google-chart-container-categorias">
+                        <div id="google-piechart-categorias" style="width: 400px; height: 400px;"></div>
                     </div>           
-                    <div class="alert alert-warning" role="alert" id="mensaje-resultados">
+                    <div class="alert alert-warning" role="alert" id="mensaje-resultados-categorias">
                         No hay datos registrados.
                     </div>
                 </div>
                 
                 <h5>Porcentaje de Metas Cumplidas</h5>
-                <h2>70%</h2>
+                <div class="col-12 d-flex mt-4"> 
+                    <div id="google-chart-container-metas">
+                        <div id="google-piechart-metas" style="width: 400px; height: 400px;"></div>
+                    </div>           
+                    <div class="alert alert-warning" role="alert" id="mensaje-resultados-metas">
+                        No hay datos registrados.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -199,11 +206,11 @@
 
     // Lógica para mostrar/ocultar elementos
     if (hayResultados) {
-        document.getElementById('google-chart-container').style.display = 'block';
-        document.getElementById('mensaje-resultados').style.display = 'none';
+        document.getElementById('google-chart-container-categorias').style.display = 'block';
+        document.getElementById('mensaje-resultados-categorias').style.display = 'none';
     } else {
-        document.getElementById('google-chart-container').style.display = 'none';
-        document.getElementById('mensaje-resultados').style.display = 'block';
+        document.getElementById('google-chart-container-categorias').style.display = 'none';
+        document.getElementById('mensaje-resultados-categorias').style.display = 'block';
     }
 
     // Configuración del gráfico
@@ -244,7 +251,7 @@
             tooltip: { isHtml: true }
         };
 
-        var chart = new google.visualization.PieChart(document.getElementById('google-piechart'));
+        var chart = new google.visualization.PieChart(document.getElementById('google-piechart-categorias'));
         chart.draw(data, options);
     }
 
@@ -261,6 +268,50 @@
         // Redibuja el gráfico con la nueva configuración
         drawChart();
     });
+</script>
+
+<!-- Grafico Metas -->
+<script>
+    // Cargar la librería de Google Charts
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    // Obtengo Metas del contexto
+    var context = JSON.parse('{{ context|escapejs }}');
+    var metasCumplidas = context.metas_cumplidas;
+    var metasNoCumplidas =  context.metas_no_cumplidas;
+
+    // Función para dibujar el gráfico
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Estado', 'Porcentaje'],
+            ['Cumplidas', metasCumplidas],
+            ['No Cumplidas', metasNoCumplidas]
+        ]);
+
+        var options = {
+            pieSliceText: 'percentage',
+            pieHole: 0.4, // Esto convierte el gráfico en un gráfico de anillo
+            slices: {
+                0: { color: '#4CAF50' }, // Color para "Cumplidas"
+                1: { color: '#F44336' }  // Color para "No Cumplidas"
+            },
+            legend: { position: 'right', alignment: 'center' },
+            tooltip: { isHtml: true }
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('google-piechart-metas'));
+        chart.draw(data, options);
+    }
+
+    // Manejo de la visualización del gráfico
+    if (metasCumplidas !== null) {
+        document.getElementById('google-chart-container-metas').style.display = 'block';
+        document.getElementById('mensaje-resultados-metas').style.display = 'none'; // Ocultar mensaje si hay resultados
+    } else {
+        document.getElementById('google-chart-container-metas').style.display = 'none'; // Ocultar gráfico si no hay resultados
+        document.getElementById('mensaje-resultados-metas').style.display = 'block'; // Mostrar mensaje
+    }
 </script>
 
 {% endblock %}
