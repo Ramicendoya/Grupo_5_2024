@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerHistoricoSaldoView
 
 urlpatterns = [
     
@@ -31,4 +31,6 @@ urlpatterns = [
     path('saldo-actual/', ObtenerSaldoActualView.as_view(), name='saldo_actual'),
     path('saldo-futuro/', ObtenerSaldoFuturoView.as_view(), name='saldo_futuro'),
 
+    # Historico de saldos
+    path('saldos-historicos/', ObtenerHistoricoSaldoView.as_view(), name='saldos-historicos'),
 ]

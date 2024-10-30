@@ -338,54 +338,65 @@
 <!-- Gráfico Histórico de Saldos -->
 <script>
     window.onload = function() {
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(initializeCharts);
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(initializeCharts);
     };
-
 
     // Inicializa los gráficos y dibuja el gráfico de histórico de saldos
     function initializeCharts() {
-        drawHistoricoSaldosChart();
+        fetchSaldosHistoricosData();
     }
 
-    // Función para dibujar el gráfico de histórico de saldos
-    function drawHistoricoSaldosChart() {
-        var saldosHistoricos = [
-            { mes: 'Enero', saldo: 500 },
-            { mes: 'Febrero', saldo: 600 },
-            { mes: 'Marzo', saldo: 700 },
-            { mes: 'Abril', saldo: 800 },
-            { mes: 'Mayo', saldo: 650 },
-            { mes: 'Junio', saldo: 900 },
-            { mes: 'Julio', saldo: 1100 },
-            { mes: 'Agosto', saldo: 1000 },
-            { mes: 'Septiembre', saldo: 950 },
-            { mes: 'Octubre', saldo: 1050 },
-            { mes: 'Noviembre', saldo: 1200 },
-            { mes: 'Diciembre', saldo: 1300 }
-        ];
+    // Función para obtener datos de saldo histórico desde el servidor
+    function fetchSaldosHistoricosData() {
+        fetch('/saldos-historicos/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.historial_saldos && data.historial_saldos.length > 0) {
+                    drawHistoricoSaldosChart(data.historial_saldos);
+                } else {
+                    const saldoChart = document.getElementById('saldoChart');
+                    const mensajeResultados = document.getElementById('mensaje-resultados-historico-saldos');
+                    if (saldoChart) saldoChart.style.display = 'none';
+                    if (mensajeResultados) mensajeResultados.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error("Error al obtener datos de saldos históricos:", error);
+                const saldoChart = document.getElementById('saldoChart');
+                const mensajeResultados = document.getElementById('mensaje-resultados-historico-saldos');
+                if (saldoChart) saldoChart.style.display = 'none';
+                if (mensajeResultados) mensajeResultados.style.display = 'block';
+            });
+    }
 
-        // Verifica que saldosHistoricos no sea undefined y sea un array
-        if (!Array.isArray(saldosHistoricos) || saldosHistoricos.length === 0) {
-            console.error("saldosHistoricos no tiene datos válidos:", saldosHistoricos);
-            document.getElementById('saldoChart').style.display = 'none'; // Oculta el gráfico si no hay datos
-            document.getElementById('mensaje-resultados-historico-saldos').style.display = 'block'; // Muestra el mensaje
-            return; // Salimos de la función si no hay datos para dibujar
-        }
+   // Función para dibujar el gráfico de histórico de saldos
+    function drawHistoricoSaldosChart(saldosHistoricos) {
+        var dataTable = new google.visualization.DataTable();
 
-        // Prepara los datos para el gráfico
-        var data = [['Mes', 'Saldo']];
+        // Definir las columnas y tipos explícitamente
+        dataTable.addColumn('date', 'Mes');
+        dataTable.addColumn('number', 'Saldo');
+
         saldosHistoricos.forEach(function(item) {
-            data.push([item.mes, item.saldo]);
+            if (item.fecha) {
+                var date = new Date(item.fecha); // Usar el formato ISO
+                var saldo = parseFloat(item.saldo) || 0;
+
+                console.log(`Mes: ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}, Saldo: ${saldo}`);
+
+                // Añadir fila a la tabla
+                dataTable.addRow([date, saldo]);
+            } else {
+                console.error("Datos de fecha no válidos:", item);
+            }
         });
 
-        // Crea la tabla de datos para Google Charts
-        var dataTable = google.visualization.arrayToDataTable(data);
-
-        // Opciones del gráfico
         var options = {
             hAxis: {
-                title: 'Mes'
+                title: 'Mes',
+                format: 'MMM yyyy',  // Formato para mostrar mes y año
+                gridlines: { count: 12 }
             },
             vAxis: {
                 title: 'Saldo'
@@ -396,7 +407,7 @@
         var chart = new google.visualization.ColumnChart(document.getElementById('saldoChart'));
         chart.draw(dataTable, options);
 
-        // Mostrar el gráfico
+        // Mostrar u ocultar contenedores según los datos
         const chartContainer = document.getElementById('google-chart-container-historico-saldos');
         const messageContainer = document.getElementById('mensaje-resultados-historico-saldos');
         if (chartContainer && messageContainer) {
