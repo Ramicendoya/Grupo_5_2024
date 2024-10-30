@@ -782,11 +782,11 @@ class ObtenerHistoricoSaldoView(View):
                 fecha__month=fecha_inicio_mes.month
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
-            # Calcula el saldo del mes, asegurando que sea cero si no hay movimientos
-            saldo_mes = ingresos_mes - gastos_mes  # Calculamos el saldo del mes
+            # Calcula el saldo del mes, sera cero si no hay movimientos
+            saldo_mes = ingresos_mes - gastos_mes
             historial_saldos.insert(0, {
                 'fecha': fecha_inicio_mes.isoformat(),  # Formato ISO (YYYY-MM-DD)
-                'saldo': saldo_mes  # Se mostrará cero si no hay ingresos ni gastos
+                'saldo': saldo_mes
             })
 
         # Proyección para los próximos 3 meses
