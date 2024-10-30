@@ -130,12 +130,11 @@ class PromocionesView(View):
 
 class GastoView(View):
     def get(self, request):
-        # Obtiene la lista de ingresos fijos y variables
+        # Obtiene la lista de Gasto fijos y variables
         gastos_fijos = Gasto.objects.filter(bl_fijo=True,bl_baja=0)
         gastos_variables = Gasto.objects.filter(bl_fijo=False,bl_baja=0)
         categorias= Categoria.objects.filter(bl_baja=0)
-
-        # Contexto para pasar a la plantilla
+        # Crea un contexto para pasar los Gasto a la plantilla
         context = {
             'gastos_fijos': gastos_fijos,
             'gastos_variables': gastos_variables,
@@ -146,20 +145,135 @@ class GastoView(View):
         return render(request, 'gastos.html', context)
     
     def post(self, request):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
         categoria_id = request.POST.get('categoria')
-        
+        bl_fijo='tipo_gasto' in request.POST
+        if(bl_fijo==True): 
+            gasto = Gasto(
+                monto=request.POST.get('monto'),
+                observaciones=request.POST.get('nombre_gasto'),
+                persona=Persona.objects.first(),
+                categoria = Categoria.objects.get(id=categoria_id),
+                metodo_pago=request.POST.get('metodo_pago'),
+                fecha = timezone.now().date(),
+                bl_fijo='tipo_gasto' in request.POST,
+            )
+            
+            gasto.save()
 
-        gasto = Gasto(
-            monto=request.POST.get('monto'),
-            observaciones=request.POST.get('nombre_gasto'),
-            persona=Persona.objects.first(),
-            categoria = Categoria.objects.get(id=categoria_id),
-            bl_fijo='tipo_gasto' in request.POST,
-        )
-        gasto.save()
+            frecuencia = request.POST.get('frecuencia')
 
+            if frecuencia == 'diario':
+                dias = 1
+            elif frecuencia == 'semanal':
+                dias = 7
+            elif frecuencia == 'mensual':
+                dias = 30  # 
+            elif frecuencia == 'anual':
+                dias = 365
+            elif frecuencia == 'personalizado':
+                dias = int(request.POST.get('diasPersonalizados', 1))  # Por defecto a 1 si no se proporciona
+
+            recurrencia=Recurrencia(
+                    fecha_desde=request.POST.get('fechaDesde'),
+                    fecha_hasta=request.POST.get('fechaHasta'),
+                    frecuencia=dias,
+                    gasto=gasto,
+                    ingreso=None,
+                    bl_baja=False,
+                )
+            recurrencia.save()
+        else:
+            gasto = Gasto(
+                monto=request.POST.get('monto'),
+                observaciones=request.POST.get('nombre_gasto'),
+                persona=Persona.objects.first(),
+                categoria = Categoria.objects.get(id=categoria_id),
+                metodo_pago=request.POST.get('metodo_pago'),
+                fecha = timezone.now().date(),
+                bl_fijo='tipo_gasto' in request.POST,
+            )
+            gasto.save()
         return redirect('registrar_gasto')
     
+class ObtenerGastoView(View):
+    def get(self, request, gasto_pk):
+            # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+            gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+            # Verifico si el Gasto pertenece a la persona
+            if gasto.persona == persona:
+                gasto_data = {
+                    'nombre': gasto.observaciones,
+                    'monto': gasto.monto,
+                    'categoria_id': gasto.categoria.id,
+                    'metodo_pago': gasto.metodo_pago,
+                    'bl_fijo': gasto.bl_fijo
+                    
+                }
+                print(gasto_data)
+                return JsonResponse(gasto_data)
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+
+class EditarGastoView(View):
+     def post(self, request, gasto_pk):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
+        persona = get_object_or_404(Persona, pk=1)  # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        
+        # Busca el Gasto por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        if gasto.persona != persona:
+            messages.error(request, "No tienes permisos para editar este gasto.")
+            return redirect('registrar_gasto')
+
+        gasto.observaciones = request.POST.get('nombre')
+        #gasto.descripcion = request.POST.get('descripcion')
+        gasto.monto = request.POST.get('monto')
+        gasto.bl_fijo = 'tipo_gastoModal' in request.POST
+        categoria_id = request.POST.get('categoria')
+        print(categoria_id)
+        gasto.categoria = get_object_or_404(Categoria, id=categoria_id)
+        gasto.metodo_pago = request.POST.get('metodo_pago')
+
+        gasto.save()
+        messages.success(request, "Gasto actualizado con éxito.")
+        return redirect('registrar_gasto')
+     
+   
+class EliminarGastoView(View):
+    def post(self, request, gasto_pk):
+        #parametros_post = request.POST.dict()
+        #return JsonResponse(parametros_post)
+        # Esto tenemos que reemplazarlo por la persona autenticada en la aplicacion
+        persona = get_object_or_404(Persona, pk=1)
+        
+        # Busco el ingreso por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        # Verifico si el ingreso pertenece a la persona
+        if gasto.persona == persona:
+            gasto.bl_baja = True
+            gasto.save()
+
+           # Si el ingreso es fijo, tambien elimino la recurrencia asociada
+            if(gasto.bl_fijo == True):
+                recurrencias = Recurrencia.objects.filter(gasto=gasto)
+                for recurrencia in recurrencias:
+                    recurrencia.bl_baja = True
+                    recurrencia.save()
+            messages.success(request, "Gasto eliminado con éxito.")
+        else:
+            messages.error(request, "El Gasto no pertenece a la persona especificada.")
+
+        return redirect('registrar_gasto')
 
 
 #    Ingresos:
@@ -582,6 +696,113 @@ class ObtenerSaldoFuturoView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
     def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        ingresos_futuros_total = 0
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        gastos_futuros_total = 0
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
+        return saldo_futuro
+    
+
+####### historico de saldos
+
+class ObtenerHistoricoSaldoView(View):
+    def get(self, request):
+        try:
+            persona = get_object_or_404(Persona, pk=1)
+
+            # Obtener el saldo actual y el historial de saldos
+            saldo_actual = self.calcular_saldo_actual(persona)
+            historial_saldos = self.calcular_historial_saldos(persona, saldo_actual)
+            
+            return JsonResponse({'historial_saldos': historial_saldos})
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def calcular_saldo_actual(self, persona):
+        """Calcula el saldo actual sumando ingresos y restando gastos."""
+        ingresos_total = Ingreso.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+        gastos_total = Gasto.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+        return ingresos_total - gastos_total
+
+    def calcular_historial_saldos(self, persona, saldo_actual):
+        """Calcula el saldo histórico mes a mes, incluyendo proyecciones futuras."""
+        historial_saldos = []
+        fecha_actual = timezone.now().date()
+
+        # Calcular saldo para cada mes en el último año
+        for mes in range(0, 12):
+            fecha_inicio_mes = fecha_actual - timedelta(days=30 * mes)
+            
+            # Inicializa el saldo del mes
+            ingresos_mes = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            gastos_mes = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            # Calcula el saldo del mes, asegurando que sea cero si no hay movimientos
+            saldo_mes = ingresos_mes - gastos_mes  # Calculamos el saldo del mes
+            historial_saldos.insert(0, {
+                'fecha': fecha_inicio_mes.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_mes  # Se mostrará cero si no hay ingresos ni gastos
+            })
+
+        # Proyección para los próximos 3 meses
+        for i in range(1, 4):
+            saldo_futuro = self.calcular_saldo_futuro(persona, 30 * i, saldo_actual)
+            futuro_fecha = fecha_actual + timedelta(days=30 * i)  # Fecha futura
+            historial_saldos.append({
+                'fecha': futuro_fecha.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_futuro
+            })
+
+        return historial_saldos
+
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        """Proyecta el saldo futuro en función de ingresos y gastos recurrentes."""
         ingresos_futuros_total = 0
         ingresos_fijos = Ingreso.objects.filter(
             persona=persona,
