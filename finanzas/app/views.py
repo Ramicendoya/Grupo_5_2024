@@ -1,15 +1,131 @@
+from datetime import date
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto
+from django.db.models import Sum
+from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto
 from django.utils import timezone
 from django.views import View
+from decimal import Decimal
 
 
-def home(request):
-    return render(request, 'home.html') 
+class Home(View):
+    def get(self, request):
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1)
+             
+        # Obtiene la lista de gastos
+        gastos = Gasto.objects.filter(persona=persona, bl_baja=0)
 
+        # Calculo el monto total de gastos
+        total_global_gastos = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()  
+        hay_resultados = False  # Inicializa la variable de resultados
+
+        # Verifico si hay gastos para calcular los porcentajes
+        if total_global_gastos > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de gastos por categoría y porcentaje
+            gastos_por_categoria = (
+                gastos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global_gastos)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen gastos
+            categorias_de_gastos = [gasto['categoria__nombre'] for gasto in gastos_por_categoria]
+
+            # Creo un QuerySet que obtenga directamente las categorías de gastos
+            if categorias_de_gastos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_gastos, bl_baja=False)
+
+        # Si no hay gastos, asigno un QuerySet vacío
+        else:
+            gastos_por_categoria = []
+
+        # Obtiene la lista de ingresos
+        ingresos = Ingreso.objects.filter(persona=persona, bl_baja=0)
+
+        # Calculo el monto total de ingresos
+        total_global_ingresos = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Verifico si hay ingresos para calcular los porcentajes
+        if total_global_ingresos > 0:
+            hay_resultados = True  # Si hay ingresos, mantengo la variable
+
+            # Filtro y calculo total de ingresos por categoría y porcentaje
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global_ingresos)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen ingresos
+            categorias_de_ingresos = [ingreso['categoria__nombre'] for ingreso in ingresos_por_categoria]
+
+            # Creo un QuerySet que obtenga directamente las categorías de ingresos
+            if categorias_de_ingresos:
+                categorias = categorias | Categoria.objects.filter(nombre__in=categorias_de_ingresos, bl_baja=False)
+
+        # Si no hay ingresos, asigno un QuerySet vacío
+        else:
+            ingresos_por_categoria = []
+
+
+        # Metas
+        
+        # metas = Meta.objects.all()
+        
+        # Cuentar metas cumplidas y no cumplidas
+        metas_cumplidas = 7 # metas.filter(cumplida=True).count()
+        metas_totales = 10 # metas.count()
+        metas_no_cumplidas = metas_totales - metas_cumplidas if metas_totales else 0
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'gastos': list(gastos.values('id', 'nombre', 'observaciones', 'monto', 'fecha', 'categoria__nombre')),
+            'ingresos': list(ingresos.values('id', 'nombre','descripcion', 'monto', 'fecha', 'categoria__nombre')),
+            'categorias': list(categorias.values()),  
+            'gastos_por_categoria': list(gastos_por_categoria),
+            'ingresos_por_categoria': list(ingresos_por_categoria),
+            'hay_resultados': hay_resultados,
+            'metas_cumplidas': metas_cumplidas,
+            'metas_totales': metas_totales,
+            'metas_no_cumplidas': metas_no_cumplidas,
+        }
+
+        # Función para serializar objetos que no son JSON serializables
+        def serialize_value(value):
+            if isinstance(value, Decimal):
+                return float(value)  # Convierte Decimal a float
+            if isinstance(value, date):
+                return value.isoformat()  # Convierte date a cadena en formato ISO
+            return value  # Retorna el valor tal como está
+
+        # Serializa los valores del contexto
+        for key in context:
+            if isinstance(context[key], list):
+                for item in context[key]:
+                    for k, v in item.items():
+                        item[k] = serialize_value(v)
+
+        # Convierte el contexto a JSON
+        context_json = json.dumps(context)
+        return render(request, 'home.html', {'context': context_json})
+
+class PromocionesView(View):
+    def get(self, request):
+
+        return render(request, 'promociones.html')
 
 
 class GastoView(View):
@@ -344,3 +460,267 @@ class CategoriaView(View):
             # Si el origen no es válido
             return redirect('home')
 
+   
+class EliminarGastoView(View):
+    def post(self, request):        
+        gasto = get_object_or_404(Gasto, id=request.POST.get('id_gasto'))
+        
+        # Modificamos el campo bl_baja del objeto existente
+        gasto.bl_baja = 1
+        gasto.save()
+
+        # Redireccionamos a la vista de registrar_gasto
+        return redirect('registrar_gasto')
+
+
+
+####################################################################################################
+####################################################################################################
+#  Reporte Financiero
+####################################################################################################
+####################################################################################################
+
+class ReporteFinancieroView(View):
+    def get(self, request, tipo, anio=None, mes=None):
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1)
+
+        if tipo == 'ingresos':
+            context = self.obtener_ingresos(persona, anio, mes)
+        elif tipo == 'gastos':
+            context = self.obtener_gastos(persona, anio, mes)
+        else:
+            # Si el tipo no es válido
+            error = "Tipo de reporte no válido"
+            context = {
+                'error': error,
+            }
+            return render(request, 'reporte_financiero.html', {'context': context})
+
+        # Función para serializar objetos que no son JSON serializables
+        def serialize_value(value):
+            if isinstance(value, Decimal):
+                return float(value)  # Convierte Decimal a float
+            if isinstance(value, date):
+                return value.isoformat()  # Convierte date a cadena en formato ISO
+            return value  # Retorna el valor tal como está
+
+        # Serializa los valores del contexto
+        for key in context:
+            if isinstance(context[key], list):
+                for item in context[key]:
+                    for k, v in item.items():
+                        item[k] = serialize_value(v)
+
+        # Convierte el contexto a JSON
+        context_json = json.dumps(context)
+        return render(request, 'reporte_financiero.html', {'context': context_json})
+
+    def obtener_ingresos(self, persona, anio, mes):
+        # Obtengo la lista de ingresos que no estén dados de baja
+        ingresos = Ingreso.objects.filter(bl_baja=False, persona=persona)
+
+        # Filtrar por año si se seleccionó uno
+        if anio:
+            ingresos = ingresos.filter(fecha__year=anio)
+
+        # Filtrar por mes si se seleccionó uno
+        if mes > 0 and mes <= 12:
+            ingresos = ingresos.filter(fecha__month=mes)
+        elif mes != 0:
+            # Si mes es distinto de cero, significa que no se seleccionó ni "Reporte Anual" (mes=0) ni ningun mes correcto
+            return {"error": "Mes incorrecto"}
+
+        # Calculo el monto total de ingresos
+        total_global = ingresos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()
+
+        # Verifico si hay ingresos para calcular los porcentajes
+        if total_global > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de ingresos por categoría y porcentaje
+            ingresos_por_categoria = (
+                ingresos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen ingresos
+            categorias_de_ingresos = [ingreso['categoria__nombre'] for ingreso in ingresos_por_categoria]
+
+            # Crear un QuerySet que obtenga directamente las categorías de ingresos
+            if categorias_de_ingresos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_ingresos, bl_baja=False)
+
+        # Si no hay ingresos, asigno un QuerySet vacío
+        else:
+            ingresos_por_categoria = []
+            hay_resultados = False 
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'ingresos': list(ingresos.values('id', 'nombre','descripcion', 'monto', 'fecha', 'categoria__nombre')),
+            'gastos': [],
+            'categorias': list(categorias.values()),  
+            'ingresos_por_categoria': list(ingresos_por_categoria),
+            'hay_resultados': hay_resultados,
+        }
+        return context
+
+    def obtener_gastos(self, persona, anio, mes):
+        # Obtengo la lista de gastos que no estén dados de baja
+        gastos = Gasto.objects.filter(bl_baja=False, persona=persona)
+
+        # Filtrar por año si se seleccionó uno
+        if anio:
+            gastos = gastos.filter(fecha__year=anio)
+
+        # Filtrar por mes si se seleccionó uno
+        if mes > 0 and mes <= 12:
+            gastos = gastos.filter(fecha__month=mes)
+        elif mes != 0:
+            # Si mes es distinto de cero, significa que no se seleccionó ni "Reporte Anual" (mes=0) ni ningun mes correcto
+            return {"error": "Mes incorrecto"}
+
+        # Calculo el monto total de gastos
+        total_global = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        # Inicializa categorias como un QuerySet vacío
+        categorias = Categoria.objects.none()  
+
+        # Verifico si hay gastos para calcular los porcentajes
+        if total_global > 0:
+            hay_resultados = True
+
+            # Filtro y calculo total de gastos por categoría y porcentaje
+            gastos_por_categoria = (
+                gastos
+                .values('categoria__nombre')
+                .annotate(
+                    total=Sum('monto'),
+                    porcentaje=(Sum('monto') * Decimal('100.0') / total_global)
+                )
+            )
+            # Obtengo los nombres de las categorías que tienen gastos
+            categorias_de_gastos = [gasto['categoria__nombre'] for gasto in gastos_por_categoria]
+
+            # Crear un QuerySet que obtenga directamente las categorías de gastos
+            if categorias_de_gastos:
+                categorias = Categoria.objects.filter(nombre__in=categorias_de_gastos, bl_baja=False)
+
+        # Si no hay gastos, asigno un QuerySet vacío
+        else:
+            gastos_por_categoria = []
+            hay_resultados = False 
+
+        # Creo el contexto para pasarlo al template
+        context = {
+            'gastos': list(gastos.values('id', 'nombre','observaciones', 'monto', 'fecha', 'categoria__nombre')),
+            'ingresos': [],
+            'categorias': list(categorias.values()),  
+            'gastos_por_categoria': list(gastos_por_categoria),
+            'hay_resultados': hay_resultados,
+        }
+        return context
+
+
+
+#
+# Obtener Saldo Actual y Futuro
+#
+
+class ObtenerSaldoActualView(View):
+    def get(self, request):
+        try:
+            # Obtener la persona autenticada
+            persona = get_object_or_404(Persona, pk=1)
+
+            # Calcular los ingresos totales (filtrar movimientos activos)
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            # Calcular los gastos totales (filtrar movimientos activos)
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            # Calcular el saldo actual
+            saldo_actual = ingresos_total - gastos_total
+
+            # Retornar el saldo en un JsonResponse
+            return JsonResponse({'saldo_actual': saldo_actual})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+class ObtenerSaldoFuturoView(View):
+    def get(self, request):
+        try:
+            persona_id = 1  # Asumimos que el ID de la persona es 1
+            persona = get_object_or_404(Persona, pk=persona_id)
+
+            # Obtener saldo actual
+            ingresos_total = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            saldo_actual = ingresos_total - gastos_total
+
+            # Calcular saldo futuro
+            saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
+            saldo_futuro_2_meses = self.calcular_saldo_futuro(persona, 60, saldo_actual)
+            saldo_futuro_3_meses = self.calcular_saldo_futuro(persona, 90, saldo_actual)
+
+            return JsonResponse({
+                'saldo_futuro_1_mes': saldo_futuro_1_mes,
+                'saldo_futuro_2_meses': saldo_futuro_2_meses,
+                'saldo_futuro_3_meses': saldo_futuro_3_meses
+            })
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        ingresos_futuros_total = 0
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        gastos_futuros_total = 0
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
+        return saldo_futuro
