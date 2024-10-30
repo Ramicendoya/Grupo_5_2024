@@ -1,0 +1,107 @@
+metas.html{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+<div class="container">
+    <div class="form-section">
+        <h3 class="text-center">Registrar Metas</h3>
+        <form method="POST" action="{% url 'metas' %}">  
+            {% csrf_token %}
+            <div class="row">
+
+                <!-- Nombre de la Meta -->
+                <div class="col-md-4 mb-3">
+                    <label for="nombre_meta" class="form-label">Nombre de la Meta</label>
+                    <input type="text" class="form-control" id="nombre_meta" name="nombre" required>
+                </div>
+
+                <!-- Valor de la Meta -->
+                <div class="col-md-4 mb-3">
+                    <label for="valor_meta" class="form-label">Valor de la Meta</label>
+                    <input type="number" step="0.01" class="form-control" id="valor_meta" name="valor_meta" required>
+                </div>
+
+                <!-- Monto Ahorrado -->
+                <div class="col-md-4 mb-3">
+                    <label for="ahorrado" class="form-label">Monto Ahorrado</label>
+                    <input type="number" step="0.01" class="form-control" id="ahorrado" name="ahorrado" required>
+                </div>
+
+            </div>
+
+            <div class="row">
+                <!-- Fecha Deseada -->
+                <div class="col-md-4 mb-3">
+                    <label for="fecha_deseada" class="form-label">Fecha Deseada</label>
+                    <input type="date" class="form-control" id="fecha_deseada" name="fecha_deseada" required>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-md-8 mb-3">
+                    <label for="descripcion_meta" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="descripcion_meta" name="descripcion"></textarea>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Agregar Meta</button>
+            </div>
+        </form>
+    </div>
+    <div class="form-section">
+        <div class="tab-content" id="gastosTabsContent">
+            <div class="tab-pane fade show active" id="gastos-fijos" role="tabpanel" aria-labelledby="gastos-fijos-tab">
+                <!-- Listado de gastos Fijos -->
+                    <div class="container mt-5">
+                        <h2>Listado de metas</h2>
+                        <div class="table-responsive">
+                            <table id="ListadoDeMetas" class="table table-striped table-bordered display">
+                                <thead>
+                                    <tr>
+                                        <!-- Definimos tres columnas -->
+                                        <th>Nombre</th>
+                                        <th>Valor de meta</th>
+                                        <th>Monto Ahorrado</th>
+                                        <th>Descripcion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for meta in metas %}
+                                    <tr>
+                                        <td>{{ meta.nombre }}</td>
+                                        <td>{{ meta.valor_meta }}</td>
+                                        <td>${{ meta.ahorrado }}</td>
+                                        <td>{{ meta.descripcion }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+            </div>
+            
+            <div class="tab-pane fade" id="metas" role="tabpanel" aria-labelledby="metas">
+               
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        $('#ListadoDeMetas').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+

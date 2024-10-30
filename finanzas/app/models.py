@@ -83,3 +83,14 @@ class Recurrencia(models.Model):
 
     def __str__(self):
         return f"Recurrencia desde {self.fecha_desde} hasta {self.fecha_hasta}"
+    
+class Meta(models.Model):
+    nombre = models.CharField(max_length=255)
+    valor_meta = models.DecimalField(max_digits=10, decimal_places=2) 
+    ahorrado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  
+    fecha_deseada = models.DateField() 
+    descripcion = models.TextField(blank=True, null=True)
+    bl_baja = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Meta nombre: {self.nombre}"

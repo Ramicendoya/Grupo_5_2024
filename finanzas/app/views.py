@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import Sum
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto
+from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
@@ -724,3 +724,37 @@ class ObtenerSaldoFuturoView(View):
 
         saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
+
+
+#Meta 
+
+class MetaView(View):
+    def get(self, request):
+        metas = Meta.objects.filter(bl_baja=False)
+        
+        context = {
+            'metas': metas,
+        }
+        
+        return render(request, 'metas.html', context)
+
+    def post(self, request):
+        # Obtiene los datos del formulario
+        nombre = request.POST.get('nombre')
+        valor_meta = request.POST.get('valor_meta')
+        ahorrado = request.POST.get('ahorrado')
+        fecha_deseada = request.POST.get('fecha_deseada')
+        descripcion = request.POST.get('descripcion')
+
+        meta = Meta(
+            nombre=nombre,
+            valor_meta=valor_meta,
+            ahorrado=ahorrado,
+            fecha_deseada=fecha_deseada,
+            descripcion=descripcion,
+            bl_baja=False, 
+        )
+        meta.save()
+        return redirect('metas') 
+        
+     
