@@ -250,6 +250,7 @@ class EditarGastoView(View):
    
 class EliminarGastoView(View):
     def post(self, request, gasto_pk):
+        #print(gasto_pk)
         #parametros_post = request.POST.dict()
         #return JsonResponse(parametros_post)
         # Esto tenemos que reemplazarlo por la persona autenticada en la aplicacion
@@ -257,7 +258,7 @@ class EliminarGastoView(View):
         
         # Busco el ingreso por la pk que se pasa en la URL
         gasto = get_object_or_404(Gasto, pk=gasto_pk)
-
+        
         # Verifico si el ingreso pertenece a la persona
         if gasto.persona == persona:
             gasto.bl_baja = True
@@ -459,18 +460,6 @@ class CategoriaView(View):
         else:
             # Si el origen no es válido
             return redirect('home')
-
-   
-class EliminarGastoView(View):
-    def post(self, request):        
-        gasto = get_object_or_404(Gasto, id=request.POST.get('id_gasto'))
-        
-        # Modificamos el campo bl_baja del objeto existente
-        gasto.bl_baja = 1
-        gasto.save()
-
-        # Redireccionamos a la vista de registrar_gasto
-        return redirect('registrar_gasto')
 
 
 
