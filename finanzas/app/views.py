@@ -756,5 +756,21 @@ class MetaView(View):
         )
         meta.save()
         return redirect('metas') 
-        
-     
+    
+    def calcular_meses_restantes(self, meta, ahorro_mensual):
+        # Calcular la diferencia entre el valor de la meta y lo ahorrado
+        diferencia = meta.valor_meta - meta.ahorrado
+        if ahorro_mensual <= 0:
+            return "Ahorro mensual no válido."
+        # Calcular los meses restantes
+        meses_restantes = diferencia / ahorro_mensual
+        return round(meses_restantes, 2)  # Redondeamos a dos decimales
+
+    def meta_view(self, request, meta_id):
+        meta = Meta.objects.get(id=meta_id)
+        ahorro_mensual = 100  # Ejemplo, el ahorro mensual del usuario
+
+        # Calcular los meses restantes usando el método de la clase MetaView
+        meses_restantes = self.calcular_meses_restantes(meta, ahorro_mensual)
+
+        return render(request, 'meta_detail.html', {'meta': meta, 'meses_restantes': meses_restantes})
