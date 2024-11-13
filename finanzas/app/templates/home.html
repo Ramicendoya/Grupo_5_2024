@@ -285,24 +285,26 @@
 
 <!-- Grafico Metas -->
 <script>
-    // Cargar la librería de Google Charts
     google.charts.load('current', { packages: ['corechart'] });
     google.charts.setOnLoadCallback(initializeCharts);
 
-    // Obtener Metas del contexto
-    var context = JSON.parse('{{ context|escapejs }}');
-    var metasCumplidas = context.metas_cumplidas || 0;
-    var metasNoCumplidas = context.metas_no_cumplidas || 0;
-    var chart; // Variable para guardar la instancia del gráfico
+    var chart; // Variable para guardar la instancia del grafico
 
-    // Inicializa los gráficos y dibuja el gráfico de metas
+    // Inicializa los gráficos
     function initializeCharts() {
-        drawMetasChart();
-
+        // Llamada al endpoint para obtener los datos de metas
+        fetch('/metas/grafico/')
+            .then(response => response.json())
+            .then(data => {
+                var metasCumplidas = data.metas_cumplidas || 0;
+                var metasNoCumplidas = data.metas_no_cumplidas || 0;
+                drawMetasChart(metasCumplidas, metasNoCumplidas);
+            })
+            .catch(error => console.error('Error al obtener los datos:', error));
     }
 
     // Función para dibujar el gráfico de metas
-    function drawMetasChart() {
+    function drawMetasChart(metasCumplidas, metasNoCumplidas) {
         var data = google.visualization.arrayToDataTable([
             ['Estado', 'Porcentaje'],
             ['Cumplidas', metasCumplidas],
@@ -311,7 +313,7 @@
 
         var options = {
             pieSliceText: 'percentage',
-            pieHole: 0.4, // convierte el gráfico en un gráfico de anillo
+            pieHole: 0.4, // convierte el gráfico en un grafico de anillo
             slices: {
                 0: { color: '#4CAF50' }, // Color para "Cumplidas"
                 1: { color: '#F44336' }  // Color para "No Cumplidas"
@@ -328,7 +330,7 @@
         // Dibuja el gráfico
         chart.draw(data, options);
 
-        // Manejo de la visualización del gráfico
+        // Manejo de la visualizacion del gráfico
         document.getElementById('google-chart-container-metas').style.display = (metasCumplidas > 0 || metasNoCumplidas > 0) ? 'block' : 'none';
         document.getElementById('mensaje-resultados-metas').style.display = (metasCumplidas > 0 || metasNoCumplidas > 0) ? 'none' : 'block';
     }

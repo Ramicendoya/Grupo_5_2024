@@ -37,6 +37,7 @@ urlpatterns = [
     # Historico de saldos
     path('saldos-historicos/', ObtenerHistoricoSaldoView.as_view(), name='saldos-historicos'),
 
-  # Metas
-    path('metas/', MetaView.as_view(), name='metas'),  
+    # Metas
+    path('metas/', MetaView.as_view(), name='metas'),
+    path('metas/grafico/', views.metas_grafico, name='metas_grafico'),
 ]

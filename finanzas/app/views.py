@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.db.models import Sum
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
 from django.utils import timezone
 from django.views import View
@@ -984,3 +984,18 @@ class MetaView(View):
         return redirect('metas') 
         
      
+def metas_grafico(request):
+
+    # Filtramos las metas que no estan marcadas como baja
+    total_metas = Meta.objects.filter(bl_baja=False)
+    
+    # Filtra las metas donde el valor ahorrado es mayor o igual (gte) al valor de la meta
+    metas_cumplidas = total_metas.filter(ahorrado__gte=F('valor_meta')).count()
+    
+    # Filtra las metas donde el valor ahorrado es menor (lt) al valor de la meta
+    metas_no_cumplidas = total_metas.filter(ahorrado__lt=F('valor_meta')).count()
+
+    return JsonResponse({
+        'metas_cumplidas': metas_cumplidas,
+        'metas_no_cumplidas': metas_no_cumplidas
+    })
