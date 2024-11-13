@@ -323,6 +323,15 @@ class IngresoView(View):
 
             ingreso.save() # Guardo el ingreso para poder obtener su pk y asignarselo a la recurrencia
 
+            # Creo el movimiento, le asocio el ingreso y lo persisto
+            movimiento = MovimientoIngreso(
+                monto = monto,
+                fecha = timezone.now(),
+                ingreso = ingreso,
+            )
+
+            movimiento.save()
+
             frecuencia = request.POST.get('frecuencia')
             
             # Convercion de la frecuencia a días
