@@ -984,18 +984,18 @@ class MetaView(View):
         return redirect('metas') 
         
      
-def metas_grafico(request):
+    def metas_grafico(request):
 
-    # Filtramos las metas que no estan marcadas como baja
-    total_metas = Meta.objects.filter(bl_baja=False)
-    
-    # Filtra las metas donde el valor ahorrado es mayor o igual (gte) al valor de la meta
-    metas_cumplidas = total_metas.filter(ahorrado__gte=F('valor_meta')).count()
-    
-    # Filtra las metas donde el valor ahorrado es menor (lt) al valor de la meta
-    metas_no_cumplidas = total_metas.filter(ahorrado__lt=F('valor_meta')).count()
+        # Filtramos las metas que no estan marcadas como baja
+        total_metas = Meta.objects.filter(bl_baja=False)
+        
+        # Filtra las metas donde el valor ahorrado es mayor o igual (gte) al valor de la meta
+        metas_cumplidas = total_metas.filter(ahorrado__gte=F('valor_meta')).count()
+        
+        # Filtra las metas donde el valor ahorrado es menor (lt) al valor de la meta
+        metas_no_cumplidas = total_metas.filter(ahorrado__lt=F('valor_meta')).count()
 
-    return JsonResponse({
-        'metas_cumplidas': metas_cumplidas,
-        'metas_no_cumplidas': metas_no_cumplidas
-    })
+        return JsonResponse({
+            'metas_cumplidas': metas_cumplidas,
+            'metas_no_cumplidas': metas_no_cumplidas
+        })

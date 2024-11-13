@@ -39,5 +39,5 @@ urlpatterns = [
 
     # Metas
     path('metas/', MetaView.as_view(), name='metas'),
-    path('metas/grafico/', views.metas_grafico, name='metas_grafico'),
+    path('metas/grafico/', MetaView.metas_grafico, name='metas_grafico'),
 ]
