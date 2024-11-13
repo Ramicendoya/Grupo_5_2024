@@ -91,6 +91,13 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'metas' %}">Metas</a>
             </li>
+            <!--Subido a el 13/11/2024-->
+            <li>
+              <button id="theme-toggle" class="btn btn-outline-secondary">
+                <i class="bi bi-moon"></i> Cambiar a modo noche
+              </button>
+            </li>
+            <!--Subido a el 13/11/2024-->
             <!--<li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 Dropdown
@@ -113,7 +120,7 @@
       </div>
     </div>
   </nav>
-<body data-bs-theme="white">
+<body data-bs-theme="light" id="body-theme">
     <main class="mt-5">
         {% block main %}{% endblock %}
     </main>
@@ -133,7 +140,76 @@
 
 
 </html>
+<!--Subido a el 13/11/2024-->
+<style>
+  /* Estilo general para el fondo y color en modo claro */
+  body[data-bs-theme="light"] {
+      background-color: #ffffff; /* Blanco */
+      color: #000000; /* Texto negro */
+  }
 
+  /* Estilo general para el fondo y color en modo oscuro */
+  body[data-bs-theme="dark"] {
+      background-color: #121212; /* Fondo oscuro */
+      color: #ffffff; /* Texto blanco */
+  }
+
+  /* Estilo para elementos internos como divs, botones, etc. */
+  body[data-bs-theme="light"] .navbar,
+  body[data-bs-theme="light"] .footer,
+  body[data-bs-theme="light"] .container,
+  body[data-bs-theme="light"] .card {
+      background-color: #f8f9fa; /* Fondo claro */
+      color: #000000; /* Texto oscuro */
+  }
+
+  body[data-bs-theme="dark"] .navbar,
+  body[data-bs-theme="dark"] .footer,
+  body[data-bs-theme="dark"] .container,
+  body[data-bs-theme="dark"] .card {
+      background-color: #343a40; /* Fondo oscuro */
+      color: #ffffff; /* Texto claro */
+  }
+
+  /* Opcional: cambio de color de los botones */
+  body[data-bs-theme="light"] .btn {
+      background-color: #007bff; /* Azul claro */
+      color: #ffffff;
+  }
+
+  body[data-bs-theme="dark"] .btn {
+      background-color: #495057; /* Gris oscuro */
+      color: #ffffff;
+  }
+</style>
+
+
+<style>
+  body[data-bs-theme="light"] .custom-background {
+      background-color: #e9ecef; /* Fondo claro */
+      color: #000000; /* Texto oscuro */
+  }
+
+  body[data-bs-theme="dark"] .custom-background {
+      background-color: #495057; /* Fondo oscuro */
+      color: #ffffff; /* Texto claro */
+  }
+</style>
+
+
+<script>
+  // Evento para alternar el tema
+  document.getElementById('theme-toggle').addEventListener('click', function() {
+      var body = document.body; // Obtener el cuerpo del documento
+      // Alternar entre 'light' y 'dark'
+      if (body.getAttribute('data-bs-theme') === 'light') {
+          body.setAttribute('data-bs-theme', 'dark');
+      } else {
+          body.setAttribute('data-bs-theme', 'light');
+      }
+  });
+</script>
+<!--Subido a el hasta aca 13/11/2024-->
 <style>
   body {
     display: flex;

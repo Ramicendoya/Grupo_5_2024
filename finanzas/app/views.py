@@ -155,7 +155,7 @@ class GastoView(View):
                 observaciones=request.POST.get('nombre_gasto'),
                 persona=Persona.objects.first(),
                 categoria = Categoria.objects.get(id=categoria_id),
-                metodo_pago=request.POST.get('metodo_pago'),
+                metodo_pago=(request.POST.get('metodo_pago')).capitalize(),
                 fecha = timezone.now().date(),
                 bl_fijo='tipo_gasto' in request.POST,
             )
@@ -190,7 +190,7 @@ class GastoView(View):
                 observaciones=request.POST.get('nombre_gasto'),
                 persona=Persona.objects.first(),
                 categoria = Categoria.objects.get(id=categoria_id),
-                metodo_pago=request.POST.get('metodo_pago'),
+                metodo_pago=(request.POST.get('metodo_pago')).capitalize(),
                 fecha = timezone.now().date(),
                 bl_fijo='tipo_gasto' in request.POST,
             )
@@ -276,6 +276,33 @@ class EliminarGastoView(View):
 
         return redirect('registrar_gasto')
 
+class MovimientoGastoView(View):
+    def get(self, request, gasto_pk):
+          # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+            gasto = get_object_or_404(Gasto, pk=gasto_pk)
+            movimientos_gastos =  MovimientoGasto.objects.filter(gasto=gasto,bl_baja=0)
+    
+            # Verifico si el Gasto pertenece a la persona
+            if gasto.persona == persona:
+                if not movimientos_gastos:
+                    return JsonResponse({'movimientos_gastos': []})
+
+                movimientos_data = []
+                for movimiento in movimientos_gastos:
+                    movimientos_data.append({
+                    'categoria': movimiento.gasto.categoria.nombre,
+                    'descripcion': movimiento.gasto.observaciones,
+                    'metodo_pago':movimiento.gasto.metodo_pago,
+                    'monto': movimiento.monto,
+                    'fecha': movimiento.fecha.strftime('%Y-%m-%d')  # Formateamos la fecha
+                })
+                print(movimientos_data)
+                return JsonResponse({'movimientos_gastos': movimientos_data})
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
 
 #    Ingresos:
 
