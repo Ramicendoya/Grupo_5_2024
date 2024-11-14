@@ -130,19 +130,19 @@ class Home(View):
             resultados = cursor.fetchall()
 
         # Procesa los resultados (opcional)
-        datos = []
+        gastos_pendientes = []
         for fila in resultados:
-            datos.append({
+            gastos_pendientes.append({
                 'id_categoria': fila[0],
                 'categoria': fila[1],
                 'id_gasto': fila[2],
                 'nombre': fila[3],
                 'monto': fila[4]
             })
-        print(datos)
+        print(gastos_pendientes)
         #Ya esta terminado. falta que se agregue en el acordeon lo que devuelve gastos y agregarle un boton que ese boton sea pagar o modificar y pagar
         #Se agergo hasta aca 13112024 en la facu
-        return render(request, 'home.html', {'context': context_json})
+        return render(request, 'home.html', {'context': context_json,'gastos_pendientes':gastos_pendientes})
 
 class PromocionesView(View):
     def get(self, request):
@@ -351,6 +351,16 @@ class MovimientoGastoView(View):
             else:
                 return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
 
+
+class ConfirmarGasto(View):
+    def post(self, request, gasto_pk):
+        # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+            gasto = get_object_or_404(Gasto, pk=gasto_pk)
+            movimientos_gastos =  MovimientoGasto.objects.filter(gasto=gasto,bl_baja=0)
+    
 #    Ingresos:
 
 class IngresoView(View):

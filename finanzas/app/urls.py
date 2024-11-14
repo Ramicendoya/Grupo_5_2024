@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarGasto
 
 
 urlpatterns = [
@@ -20,7 +20,7 @@ urlpatterns = [
     path('gastos/editar/<int:gasto_pk>/', EditarGastoView.as_view(), name='editar_gasto'),
 
     path('movimientos_gastos/<int:gasto_pk>/', MovimientoGastoView.as_view(), name='movimientos_gastos'),
-
+    #path('movimientos_gastos/ConfirmarGasto/<int:gasto_pk>/', ConfirmarGasto.as_view(), name='confirmar_gasto'),
 
     # Registrar Ingresos
     path('registrar/ingreso/', IngresoView.as_view(), name='registrar_ingreso'),

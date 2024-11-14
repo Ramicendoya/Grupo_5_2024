@@ -66,12 +66,36 @@
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingOne">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-              Acordeón Item #1
+              Gastos sin confirmacion de pagos
             </button>
           </h2>
           <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-              Este es el contenido del primer ítem del acordeón.
+                <!--Tabla gastos-->
+                    <div class="gastos-container">
+                        {% for gasto in gastos_pendientes %}
+                        <div class="gasto-item">
+                            <div class="gasto-campo">{{ gasto.categoria }}</div>
+                            <div class="gasto-campo">{{ gasto.nombre }}</div>
+                            <div class="gasto-campo">{{ gasto.monto }}</div>
+                            <div class="gasto">
+                                <div class="row">
+                                    <div class="col-4 text-center">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                        </div>
+                        {% endfor %}
+                    </div>
+                
+                <!--Fin tabla gastos-->
             </div>
           </div>
         </div>
@@ -79,7 +103,7 @@
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingTwo">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-              Acordeón Item #2
+              Ingreso sin confirmacion 
             </button>
           </h2>
           <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
@@ -445,4 +469,40 @@
 </script>
 
 
+<!--Tablas-->
+<script>
+    $(document).ready(function() {
+        $('#gastos_fijos').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<!--Fin Tablas-->
+
+
+<style>
+.gastos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre los elementos */
+}
+
+.gasto-item {
+    display: flex;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para efecto de tarjeta */
+    background-color: #f9f9f9;
+}
+
+.gasto-campo {
+    flex: 1; /* Cada campo ocupa el mismo espacio */
+    padding: 4px;
+}
+
+
+</style>
 {% endblock %}
