@@ -432,6 +432,15 @@ class EditarIngresoView(View):
         ingreso.metodo_pago = request.POST.get('metodo_pago')
 
         ingreso.save()
+
+        # Creo el movimiento, le asocio el ingreso y lo persisto
+        movimiento = MovimientoIngreso(
+            monto=request.POST.get('monto'),
+            fecha = timezone.now().date(),
+            ingreso = ingreso,
+        )
+        movimiento.save()
+        
         messages.success(request, "Ingreso actualizado con éxito.")
         return redirect('registrar_ingreso')
     
