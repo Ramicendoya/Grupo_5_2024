@@ -81,15 +81,6 @@ class Home(View):
             ingresos_por_categoria = []
 
 
-        # Metas
-        
-        # metas = Meta.objects.all()
-        
-        # Cuentar metas cumplidas y no cumplidas
-        metas_cumplidas = 7 # metas.filter(cumplida=True).count()
-        metas_totales = 10 # metas.count()
-        metas_no_cumplidas = metas_totales - metas_cumplidas if metas_totales else 0
-
         # Creo el contexto para pasarlo al template
         context = {
             'gastos': list(gastos.values('id', 'nombre', 'observaciones', 'monto', 'fecha', 'categoria__nombre')),
@@ -98,9 +89,6 @@ class Home(View):
             'gastos_por_categoria': list(gastos_por_categoria),
             'ingresos_por_categoria': list(ingresos_por_categoria),
             'hay_resultados': hay_resultados,
-            'metas_cumplidas': metas_cumplidas,
-            'metas_totales': metas_totales,
-            'metas_no_cumplidas': metas_no_cumplidas,
         }
 
         # Función para serializar objetos que no son JSON serializables
