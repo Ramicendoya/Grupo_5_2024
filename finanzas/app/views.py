@@ -371,6 +371,14 @@ class IngresoView(View):
             )
             ingreso.save()
 
+            # Creo el movimiento, le asocio el ingreso y lo persisto
+            movimiento = MovimientoIngreso(
+                monto = monto,
+                fecha = timezone.now(),
+                ingreso = ingreso,
+            )
+            movimiento.save()
+
         return redirect('registrar_ingreso')
     
 class EliminarIngreso(View):
