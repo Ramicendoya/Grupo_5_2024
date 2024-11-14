@@ -9,7 +9,9 @@ from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIng
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
-
+#Se agergo desde aca 13112024 en la facu
+from django.db import connection
+#Se agergo hasta aca 13112024 en la facu
 
 class Home(View):
     def get(self, request):
@@ -120,6 +122,26 @@ class Home(View):
 
         # Convierte el contexto a JSON
         context_json = json.dumps(context)
+#Se agergo desde aca 13112024 en la facu
+        with connection.cursor() as cursor:
+            # Ejecuta la consulta sobre la vista
+            cursor.execute("SELECT * FROM gastos_pendientes")
+            # Obtiene todos los resultados
+            resultados = cursor.fetchall()
+
+        # Procesa los resultados (opcional)
+        datos = []
+        for fila in resultados:
+            datos.append({
+                'id_categoria': fila[0],
+                'categoria': fila[1],
+                'id_gasto': fila[2],
+                'nombre': fila[3],
+                'monto': fila[4]
+            })
+        print(datos)
+        #Ya esta terminado. falta que se agregue en el acordeon lo que devuelve gastos y agregarle un boton que ese boton sea pagar o modificar y pagar
+        #Se agergo hasta aca 13112024 en la facu
         return render(request, 'home.html', {'context': context_json})
 
 class PromocionesView(View):
@@ -159,9 +181,16 @@ class GastoView(View):
                 fecha = timezone.now().date(),
                 bl_fijo='tipo_gasto' in request.POST,
             )
-            
+            #Se agergo desde aca 13112024 en la facu
             gasto.save()
-
+            movimientogasto=MovimientoGasto(
+                monto=request.POST.get('monto'),
+                fecha = timezone.now().date(),
+                bl_baja=0,
+                gasto=gasto,
+            )
+            movimientogasto.save()
+            #Se agergo hasta aca 13112024 en la facu
             frecuencia = request.POST.get('frecuencia')
 
             if frecuencia == 'diario':
@@ -195,6 +224,15 @@ class GastoView(View):
                 bl_fijo='tipo_gasto' in request.POST,
             )
             gasto.save()
+            #Se agergo desde aca 13112024 en la facu
+            movimientogasto=MovimientoGasto(
+                monto=request.POST.get('monto'),
+                fecha = timezone.now().date(),
+                bl_baja=0,
+                gasto=gasto,
+            )
+            movimientogasto.save
+            #Se agergo hasta aca 13112024 en la facu
         return redirect('registrar_gasto')
     
 class ObtenerGastoView(View):
@@ -242,8 +280,17 @@ class EditarGastoView(View):
         print(categoria_id)
         gasto.categoria = get_object_or_404(Categoria, id=categoria_id)
         gasto.metodo_pago = request.POST.get('metodo_pago')
-
+        gasto.fecha=timezone.now().date()
         gasto.save()
+        #Se agergo desde aca 13112024 en la facu
+        movimientogasto=MovimientoGasto(
+            monto=request.POST.get('monto'),
+            fecha = timezone.now().date(),
+            bl_baja=0,
+            gasto=gasto,
+        )
+        movimientogasto.save()
+        #Se agergo hasta aca 13112024 en la facu
         messages.success(request, "Gasto actualizado con éxito.")
         return redirect('registrar_gasto')
      
