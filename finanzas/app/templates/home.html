@@ -52,6 +52,28 @@
 }
 </style>
 
+<!-- Acordeon ingresos -->
+<style>
+.ingresos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre los elementos */
+}
+
+.ingreso-item {
+    display: flex;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para efecto de tarjeta */
+    background-color: #f9f9f9;
+}
+
+.ingreso-campo {
+    flex: 1; /* Cada campo ocupa el mismo espacio */
+    padding: 4px;
+}
+</style>
 <div class="container my-4">
     <header class="text-center mb-4">
         <div class="d-flex justify-content-center align-items-center">
@@ -60,7 +82,80 @@
             <h1>Saldo Actual y Estimado</h1>
         </div>
     </header>
+    <!--Acordeon-->
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+              Gastos sin confirmacion de pagos
+            </button>
+          </h2>
+          <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!--Tabla gastos-->
+                    <div class="gastos-container">
+                        {% for gasto in gastos_pendientes %}
+                        <div class="gasto-item">
+                            <div class="gasto-campo">{{ gasto.categoria }}</div>
+                            <div class="gasto-campo">{{ gasto.nombre }}</div>
+                            <div class="gasto-campo">{{ gasto.monto }}</div>
+                            <div class="gasto">
+                                <div class="row">
+                                    <div class="col-4 text-center">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                        </div>
+                        {% endfor %}
+                    </div>
+                
+                <!--Fin tabla gastos-->
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+              Ingreso sin confirmacion de cobro
+            </button>
+          </h2>
+          <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!--Tabla ingresos-->
+                <div class="ingresos-container">
+                    {% for ingreso in ingresos_pendientes %}
+                    <div class="ingreso-item">
+                        <div class="ingreso-campo">{{ ingreso.categoria }}</div>
+                        <div class="ingreso-campo">{{ ingreso.nombre }}</div>
+                        <div class="ingreso-campo">{{ ingreso.monto }}</div>
+                        <div class="ingreso">
+                            <div class="row">
+                                <div class="col-4 text-center">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>            
+                <!--Fin tabla ingresos-->
+            </div>
+          </div>
+        </div>
+      </div>
 
+    <!--Fin Acordeon-->
     <!-- KPI Cards for Saldo Actual y Saldo Futuro -->
     <div class="row my-4">
         <div class="col-md-4 offset-md-2 text-center">
