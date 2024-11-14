@@ -328,7 +328,7 @@ class IngresoView(View):
             # Creo el movimiento, le asocio el ingreso y lo persisto
             movimiento = MovimientoIngreso(
                 monto = monto,
-                fecha = timezone.now(),
+                fecha = timezone.now().date(),
                 ingreso = ingreso,
             )
 
@@ -376,7 +376,7 @@ class IngresoView(View):
             # Creo el movimiento, le asocio el ingreso y lo persisto
             movimiento = MovimientoIngreso(
                 monto = monto,
-                fecha = timezone.now(),
+                fecha = timezone.now().date(),
                 ingreso = ingreso,
             )
             movimiento.save()
