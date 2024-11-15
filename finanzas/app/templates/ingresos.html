@@ -367,7 +367,44 @@
     }
 </style>
 
+<!--Estilo de Tablas-->
+<style>
+    body {
+        background-color: #dfdfdf;
+    }
+    .form-section {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px; 
+        padding: 1%; 
+        margin: 1%; 
+    }
+    #fijo-checkbox{
+        margin-top:20%;
+     
+    }
+</style>
 
+
+<!--Tablas-->
+<script>
+    $(document).ready(function() {
+        $('#ingresos_fijos').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#ingresos_variables').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<!-- FinTablas-->
 
 <script>
     function toggleFields() {
