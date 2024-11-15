@@ -277,7 +277,7 @@
                         <label for="categoriaModal" class="form-label">Categoría</label>
                         <select class="form-select" id="categoriaModal" name="categoria" required>
                             {% for categoria in categorias %}
-                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            <option value="{{ categoria.id_categoria }}">{{ categoria.categoria }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -303,6 +303,33 @@
 </div>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+<!--Funcion para abrir modal de confirmacion o editar confirmar pago-->
+<script>
+    function abrirModalConfirmarYEditar(gastoId) {
+            fetch(`/ingresos/obtener/${gastoId}`)
+            
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    // Llena el modal con los datos del gasto
+                    document.getElementById('nombreModal').value = data.nombre;
+                    document.getElementById('montoModal').value = data.monto;
+                    document.getElementById('categoriaModal').value = data.categoria_id;
+                    document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+                    document.getElementById('tipo_gastoModal').checked = data.bl_fijo;
+                    // Actualiza el action del formulario para que envíe a la URL de actualizar
+                    const form = document.getElementById('formEditarIngreso');
+                    form.action = `/ingresos/obtener/${gastoId}/`;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
 
 <!-- Saldo actual y futuro -->
 <script>
