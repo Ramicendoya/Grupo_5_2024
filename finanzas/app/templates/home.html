@@ -136,29 +136,33 @@
             <div class="accordion-body">
                 <!--Tabla ingresos-->
                 <div class="ingresos-container">
-                    {% for ingreso in ingresos_pendientes %}
-                    <div class="ingreso-item">
-                        <div class="ingreso-campo">{{ ingreso.categoria }}</div>
-                        <div class="ingreso-campo">{{ ingreso.nombre }}</div>
-                        <div class="ingreso-campo">{{ ingreso.monto }}</div>
-                        <div class="ingreso">
-                            <!-- Botón de confirmación -->
-                            <button type="button" class="btn btn-outline-success btn-sm ms-2" 
-                                    onclick="confirmarIngreso('{{ ingreso.id_ingreso }}')">
-                                <i class="bi bi-check2-circle"></i>
-                            </button>
+                    {% if ingresos_pendientes %}
+                        {% for ingreso in ingresos_pendientes %}
+                        <div class="ingreso-item">
+                            <div class="ingreso-campo">{{ ingreso.categoria }}</div>
+                            <div class="ingreso-campo">{{ ingreso.nombre }}</div>
+                            <div class="ingreso-campo">{{ ingreso.monto }}</div>
+                            <div class="ingreso">
+                                <!-- Botón de confirmación -->
+                                <button type="button" class="btn btn-outline-success btn-sm ms-2" 
+                                        onclick="confirmarIngreso('{{ ingreso.id_ingreso }}')">
+                                    <i class="bi bi-check2-circle"></i>
+                                </button>
 
-                            <!-- Botón de edición -->
-                            <button type="button" class="btn btn-outline-secondary btn-sm" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalEditar" 
-                                    data-ingreso-id="{{ ingreso.id_ingreso }}" 
-                                    onclick="abrirModalConfirmarYEditar('{{ ingreso.id_ingreso }}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                                <!-- Botón de edición -->
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditar" 
+                                        data-ingreso-id="{{ ingreso.id_ingreso }}" 
+                                        onclick="abrirModalConfirmarYEditar('{{ ingreso.id_ingreso }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <p>No hay ingresos pendientes.</p>
+                    {% endif %}
                 </div>            
                 <!--Fin tabla ingresos-->
             </div>
