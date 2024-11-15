@@ -177,7 +177,7 @@
                                         
                                        <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarIngresosButton"  data-ingreso-id="{{ ingreso.id }}" data-bs-toggle="modal" data-bs-target="#movimientosIngresosModal" ><i class="bi bi-eye"></i></button>
                                        <!--Boton Editar-->
-                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
+                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id-mod="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
                                         <!--Boton Eliminar-->
                                         <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
                                     </td>
