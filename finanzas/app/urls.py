@@ -27,7 +27,7 @@ urlpatterns = [
     path('ingresos/obtener/<int:ingreso_pk>/', ObtenerIngresoView.as_view(), name='obtener_ingreso'),
     path('ingresos/editar/<int:ingreso_pk>/', EditarIngresoView.as_view(), name='editar_ingreso'),
     
-    path('movimientos_ingresos/<int:gasto_pk>/', MovimientoIngresoView.as_view(), name='movimientos_ingresos'),
+    path('movimientos_ingresos/<int:ingreso_pk>/', MovimientoIngresoView.as_view(), name='movimientos_ingresos'),
 
 
     # Reporte Financiero
