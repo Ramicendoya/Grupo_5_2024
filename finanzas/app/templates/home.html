@@ -104,9 +104,14 @@
                                     <div class="col-4 text-center">
                                         <i class="fa-solid fa-check"></i>
                                     </div>
-                                    <div class="col-4 text-center">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditar" 
+                                    data-gasto-id="{{ gasto.id_gasto }}" 
+                                    onclick="abrirModalConfirmarYEditar('{{ gasto.id_gasto }}')"
+                                    >
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                 </div>
                             </div>
                             
@@ -137,14 +142,20 @@
                         <div class="ingreso-campo">{{ ingreso.nombre }}</div>
                         <div class="ingreso-campo">{{ ingreso.monto }}</div>
                         <div class="ingreso">
-                            <div class="row">
-                                <div class="col-4 text-center">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <div class="col-4 text-center">
-                                    <i class="fa-regular fa-pen-to-square"></i>
-                                </div>
-                            </div>
+                            <!-- Botón de confirmación -->
+                            <button type="button" class="btn btn-outline-success btn-sm ms-2" 
+                                    onclick="confirmarIngreso('{{ ingreso.id_ingreso }}')">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+
+                            <!-- Botón de edición -->
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditar" 
+                                    data-ingreso-id="{{ ingreso.id_ingreso }}" 
+                                    onclick="abrirModalConfirmarYEditar('{{ ingreso.id_ingreso }}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -234,6 +245,55 @@
                     </div>
                 </div>
             </div>            
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabel">Editar Ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarIngreso" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombreModal" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreModal" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="montoModal" class="form-label">Monto</label>
+                        <input type="number" class="form-control" id="montoModal" name="monto" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoriaModal" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoriaModal" name="categoria" required>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                        <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="tipo_ingresoModal" name="tipo_ingresoModal">
+                        <label class="form-check-label" for="tipo_ingresoModal">ingreso Fijo</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
