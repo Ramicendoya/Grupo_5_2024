@@ -298,13 +298,13 @@ class EditarGastoView(View):
         gasto.fecha=timezone.now().date()
         gasto.save()
         #Se agergo desde aca 13112024 en la facu
-        movimientogasto=MovimientoGasto(
-            monto=request.POST.get('monto'),
-            fecha = timezone.now().date(),
-            bl_baja=0,
-            gasto=gasto,
-        )
-        movimientogasto.save()
+       # movimientogasto=MovimientoGasto(
+       #    monto=request.POST.get('monto'),
+       #     fecha = timezone.now().date(),
+       #     bl_baja=0,
+       #    gasto=gasto,
+       # )
+       #movimientogasto.save()
         #Se agergo hasta aca 13112024 en la facu
         messages.success(request, "Gasto actualizado con éxito.")
         return redirect('registrar_gasto')
@@ -366,15 +366,42 @@ class MovimientoGastoView(View):
             else:
                 return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
 
-
-class ConfirmarGasto(View):
+class ConfirmarYEditarGasto(View):
     def post(self, request, gasto_pk):
+        print("entro")
         # Busco la persona
-            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+        persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        # Busco el Gasto por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        if gasto.persona == persona:
+            gasto.monto = request.POST.get('monto')
+            gasto.save()
+            movimientogasto=MovimientoGasto(
+            monto=request.POST.get('monto'),
+            fecha = timezone.now().date(),
+            bl_baja=0,
+            gasto=gasto,
+            )
+            movimientogasto.save()
+            
+            referer = request.META.get('HTTP_REFERER')
+            if referer:
+                return redirect(referer)    
+                
+
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+        
+#class ConfirmarGasto(View):
+ #   def post(self, request, gasto_pk):
+  #      # Busco la persona
+   #         persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
 
             # Busco el Gasto por la pk que se pasa en la URL
-            gasto = get_object_or_404(Gasto, pk=gasto_pk)
-            movimientos_gastos =  MovimientoGasto.objects.filter(gasto=gasto,bl_baja=0)
+    #        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+     #       movimientos_gastos =  MovimientoGasto.objects.filter(gasto=gasto,bl_baja=0)
     
 #    Ingresos:
 

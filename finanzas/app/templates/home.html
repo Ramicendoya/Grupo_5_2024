@@ -80,13 +80,21 @@
                             <div class="gasto-campo">{{ gasto.nombre }}</div>
                             <div class="gasto-campo">{{ gasto.monto }}</div>
                             <div class="gasto">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    <!-- Botón de confirmación -->
+                                    <button type="button" class="btn btn-outline-success btn-sm ms-2" 
+                                    onclick="confirmarGasto('{{ gasto.id_gasto }}')">
+                                    <i class="fa-solid fa-circle-check"></i>
+                            </button>
+
+                                <button type="button" class="btn btn-outline-dark  btn-sm" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#modalEditar" 
                                         data-gasto-id="{{ gasto.id_gasto }}" 
-                                        onclick="abrirModalConfirmarYEditar('{{ gasto.id_gasto }}')">
+                                        onclick="abrirModalConfirmarYEditarGasto('{{ gasto.id_gasto }}','{{gasto.categoria}}')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
+
+                            
                             </div>
                         </div>
                         {% endfor %}
@@ -119,12 +127,12 @@
                         <div class="gasto-campo">{{ ingreso.nombre }}</div>
                         <div class="gasto-campo">{{ ingreso.monto }}</div>
                         <div class="gasto">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                           <button type="button" class="btn btn-outline-secondary btn-sm" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalEditar" 
                                     data-gasto-id="{{ gasto.id_gasto }}" 
-                                    onclick="abrirModalConfirmarYEditar('{{ gasto.id_gasto }}')">
-                                <i class="bi bi-pencil"></i>
+                                    >
+                                <i class=" bi bi-pencil"></i>
                             </button>
                         </div>
                     </div>
@@ -499,33 +507,33 @@
 <!--Funcion para abrir modal -->
 
 
-<!-- Modal Editar -->
+<!-- Modal Editar y confirmar gasto -->
 <div class="modal fade" id="modalEditar" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalEditarLabel">Editar Gasto</h5>
+                <h5 class="modal-title" id="modalEditarLabel">Editar Y Confirmar Gasto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formEditarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                <form id="formEditaryConfirmarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
                     {% csrf_token %}
+                    
                     <div class="mb-3">
-                        <label for="nombreModal" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombreModal" name="nombre" required>
+                        <label for="categoriaModal" class="form-label">Categoria</label>
+                        <input type="text" class="form-control" id="categoriaModal" name="categoria" disabled>
                     </div>
+
                     <div class="mb-3">
-                        <label for="montoModal" class="form-label">Monto</label>
+                        <label for="nombreModal" class="form-label">Gasto</label>
+                        <input type="text" class="form-control" id="nombreModal" name="nombre" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="montoModal" class="form-label">Monto Nuevo</label>
                         <input type="number" class="form-control" id="montoModal" name="monto" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="categoriaModal" class="form-label">Categoría</label>
-                        <select class="form-select" id="categoriaModal" name="categoria" required>
-                            {% for categoria in categorias %}
-                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <!-- Para el proximo sprint  
                     <div class="mb-3">
                         <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
                         <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
@@ -533,10 +541,7 @@
                             <option value="Tarjeta">Tarjeta</option>
                         </select>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="tipo_gastoModal" name="tipo_gastoModal">
-                        <label class="form-check-label" for="tipo_gastoModal">gasto Fijo</label>
-                    </div>
+                 -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -549,22 +554,25 @@
 
 <!--Funcion para abrir modal de confirmacion o editar confirmar pago-->
 <script>
-function abrirModalConfirmarYEditar(gastoId) {
+
+//Funcion para abrir modal de editar y confirmar gasto
+function abrirModalConfirmarYEditarGasto(gastoId,categoria) {
         fetch(`/gastos/obtener/${gastoId}`)
         
         .then(response => response.json())
         .then(data => {
             if (!data.error) {
                 // Llena el modal con los datos del gasto
+                document.getElementById('categoriaModal').value = categoria;
                 document.getElementById('nombreModal').value = data.nombre;
                 document.getElementById('montoModal').value = data.monto;
-                document.getElementById('categoriaModal').value = data.categoria_id;
-                document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
-                document.getElementById('tipo_gastoModal').checked = data.bl_fijo;
+                //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+                
 
                 // Actualiza el action del formulario para que envíe a la URL de actualizar
-                const form = document.getElementById('formEditarGasto');
-                form.action = `/gastos/editar/${gastoId}/`;
+                const form = document.getElementById('formEditaryConfirmarGasto');
+                form.action = `/confirmarYEditarGasto/${gastoId}/`;
+                
 
             } else {
                 alert(data.error);
@@ -611,5 +619,12 @@ function abrirModalConfirmarYEditar(gastoId) {
 }
 
 
+.gasto-item {
+      background-color: #f8d7da; /* Un rojo claro */
+      border: 1px solid #f5c2c7; /* Borde ligeramente más oscuro */
+      border-radius: 5px; /* Opcional, para esquinas redondeadas */
+      padding: 10px; /* Opcional, para separar el contenido del borde */
+      margin-bottom: 10px; /* Espaciado entre elementos */
+  }
 </style>
 {% endblock %}
