@@ -9,6 +9,7 @@ from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIng
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
+from django.db import connection
 
 
 class Home(View):
@@ -108,7 +109,25 @@ class Home(View):
 
         # Convierte el contexto a JSON
         context_json = json.dumps(context)
-        return render(request, 'home.html', {'context': context_json})
+        with connection.cursor() as cursor:
+            # Ejecuta la consulta sobre la vista
+            cursor.execute("SELECT * FROM ingresos_pendientes")
+            # Obtiene todos los resultados
+            resultados = cursor.fetchall()
+
+        # Procesa los resultados (opcional)
+        ingresos_pendientes = []
+        for fila in resultados:
+            ingresos_pendientes.append({
+                'id_categoria': fila[0],
+                'categoria': fila[1],
+                'id_ingreso': fila[2],
+                'nombre': fila[3],
+                'monto': fila[4]
+            })
+        print(ingresos_pendientes)
+        
+        return render(request, 'home.html', {'context': context_json,'ingresos_pendientes':ingresos_pendientes})
 
 class PromocionesView(View):
     def get(self, request):
