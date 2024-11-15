@@ -75,17 +75,15 @@
                     <div class="gastos-container">
                         {% if gastos_pendientes %}
                         {% for gasto in gastos_pendientes %}
-                        <div class="gasto-item">
+                        <div class="gasto-item rounded-pill p-2" style="font-size: 0.9rem;">
                             <div class="gasto-campo">{{ gasto.categoria }}</div>
                             <div class="gasto-campo">{{ gasto.nombre }}</div>
-                            <div class="gasto-campo">{{ gasto.monto }}</div>
+                            <div class="gasto-campo">${{ gasto.monto }}</div>
                             <div class="gasto">
-                                    <!-- Botón de confirmación -->
-                                    <button type="button" class="btn btn-outline-success btn-sm ms-2" 
-                                    onclick="confirmarGasto('{{ gasto.id_gasto }}')">
+                                <!-- Botón de confirmación -->
+                                <button type="button" class="btn btn-outline-success btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="confirmarGasto('{{ gasto.id_gasto }}','{{gasto.categoria}}')">
                                     <i class="fa-solid fa-circle-check"></i>
-                            </button>
-
+                                  </button>
                                 <button type="button" class="btn btn-outline-dark  btn-sm" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#modalEditar" 
@@ -97,12 +95,15 @@
                             
                             </div>
                         </div>
+                        <!--Se agrego el 15/11/2024 16:39-->
                         {% endfor %}
                     {% else %}
-                        <p>No hay gastos pendientes.</p>
+                        <div class="alert alert-secondary text-center rounded-pill p-2 " style="font-size: 0.9rem;">
+                            No hay gastos pendientes.
+                        </div>
                     {% endif %}
                     </div>
-                
+                <!--Se agrego hasta aca el 15/11/2024 16:39-->
                 <!--Fin tabla gastos-->
             </div>
           </div>
@@ -504,7 +505,6 @@
 </script>
 
 <!--Agregado el 15/11/2024-->
-<!--Funcion para abrir modal -->
 
 
 <!-- Modal Editar y confirmar gasto -->
@@ -512,7 +512,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalEditarLabel">Editar Y Confirmar Gasto</h5>
+                <h5 class="modal-title" id="modalEditarLabel">¿Desea Editar Y Confirmar que realizo Pago?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -544,7 +544,7 @@
                  -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="submit" class="btn btn-primary">Confirmar</button>
                     </div>
                 </form>
             </div>
@@ -553,35 +553,112 @@
 </div>
 
 <!--Funcion para abrir modal de confirmacion o editar confirmar pago-->
+<!--Se agrego el 15/11/2024 16:39-->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">¿Desea Confirmar que ya realizo el Pago?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="formConfirmarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="categoriaModal_2" class="form-label">Categoria</label>
+                    <input type="text" class="form-control" id="categoriaModal_2" name="categoria" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label for="nombreModal_2" class="form-label">Gasto</label>
+                    <input type="text" class="form-control" id="nombreModal_2" name="nombre" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label for="montoModal_2" class="form-label">Monto</label>
+                    <input type="number" class="form-control" id="montoModal_2" name="monto" disabled>
+                </div>
+            <!-- Para el proximo sprint  
+                <div class="mb-3">
+                    <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                    <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+             -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
 <script>
+function confirmarGasto(gastoId,categoria){
+
+    fetch(`/gastos/obtener/${gastoId}`)
+    
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            // Llena el modal con los datos del gasto
+            document.getElementById('categoriaModal_2').value = categoria;
+            document.getElementById('nombreModal_2').value = data.nombre;
+            document.getElementById('montoModal_2').value = data.monto;
+            //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+            
+
+            // Actualiza el action del formulario para que envíe a la URL de actualizar
+            const form = document.getElementById('formConfirmarGasto');
+            form.action = `/confirmarGasto/${gastoId}/`;
+            
+
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+}
+
+
 
 //Funcion para abrir modal de editar y confirmar gasto
 function abrirModalConfirmarYEditarGasto(gastoId,categoria) {
-        fetch(`/gastos/obtener/${gastoId}`)
-        
-        .then(response => response.json())
-        .then(data => {
-            if (!data.error) {
-                // Llena el modal con los datos del gasto
-                document.getElementById('categoriaModal').value = categoria;
-                document.getElementById('nombreModal').value = data.nombre;
-                document.getElementById('montoModal').value = data.monto;
-                //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
-                
+    fetch(`/gastos/obtener/${gastoId}`)
+    
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            // Llena el modal con los datos del gasto
+            document.getElementById('categoriaModal').value = categoria;
+            document.getElementById('nombreModal').value = data.nombre;
+            document.getElementById('montoModal').value = data.monto;
+            //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+            
 
-                // Actualiza el action del formulario para que envíe a la URL de actualizar
-                const form = document.getElementById('formEditaryConfirmarGasto');
-                form.action = `/confirmarYEditarGasto/${gastoId}/`;
-                
+            // Actualiza el action del formulario para que envíe a la URL de actualizar
+            const form = document.getElementById('formEditaryConfirmarGasto');
+            form.action = `/confirmarYEditarGasto/${gastoId}/`;
+            
 
-            } else {
-                alert(data.error);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 </script>
+<!--Se agrego el 15/11/2024 16:39-->
 
 <!--Agregado hasta aca el 15/11/2024-->
 <!--Tablas-->
