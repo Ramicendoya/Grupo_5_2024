@@ -154,7 +154,7 @@
                                             
                                            <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarGastosButton"  data-gasto-id="{{ gasto.id }}" data-bs-toggle="modal" data-bs-target="#movimientosGastosModal" ><i class="bi bi-eye"></i></button>
                                            <!--Boton Editar-->
-                                           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-gasto-id="{{ gasto.id }}" onclick="abrirModalEditar('{{gasto.id}}')"><i class="bi bi-pencil"></i></button>
+                                           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-gasto-id-mod="{{ gasto.id }}" onclick="abrirModalEditar('{{gasto.id}}')"><i class="bi bi-pencil"></i></button>
                                             <!--Boton Eliminar-->
                                             <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_gasto' gasto_pk=gasto.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
                                         </td>

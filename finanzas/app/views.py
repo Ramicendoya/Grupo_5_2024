@@ -129,8 +129,13 @@ class Home(View):
             # Obtiene todos los resultados
             resultados = cursor.fetchall()
 
+            cursor.execute("SELECT * FROM ingresos_pendientes")
+            # Obtiene todos los resultados
+            resultados_ingreso = cursor.fetchall()
+
         # Procesa los resultados (opcional)
         gastos_pendientes = []
+        ingresos_pendientes = []
         for fila in resultados:
             gastos_pendientes.append({
                 'id_categoria': fila[0],
@@ -139,10 +144,20 @@ class Home(View):
                 'nombre': fila[3],
                 'monto': fila[4]
             })
-        print(gastos_pendientes)
+        #Agregado el 15/11/2024
+        for fila_ingreso in resultados_ingreso:
+            ingresos_pendientes.append({
+                'id_categoria': fila_ingreso[0],
+                'categoria': fila_ingreso[1],
+                'id_ingerso': fila_ingreso[2],
+                'nombre': fila_ingreso[3],
+                'monto': fila_ingreso[4]
+            })
+        #Agregado hasta aca el 15/11/2024
+        print(ingresos_pendientes)
         #Ya esta terminado. falta que se agregue en el acordeon lo que devuelve gastos y agregarle un boton que ese boton sea pagar o modificar y pagar
         #Se agergo hasta aca 13112024 en la facu
-        return render(request, 'home.html', {'context': context_json,'gastos_pendientes':gastos_pendientes})
+        return render(request, 'home.html', {'context': context_json,'gastos_pendientes':gastos_pendientes,'ingresos_pendientes':ingresos_pendientes})
 
 class PromocionesView(View):
     def get(self, request):
