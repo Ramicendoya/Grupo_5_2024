@@ -140,82 +140,96 @@
     </form>
 </div>
 
-<!-- Listado de Ingresos -->
+<!-- Listado de ingresos -->
 <div class="form-section">
     <ul class="nav nav-tabs" id="ingresosTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab"
-                data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos"
-                aria-selected="true">Ingresos Fijos</button>
+            <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab" data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos" aria-selected="true">ingresos Fijos</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab"
-                data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables"
-                aria-selected="false">Ingresos Variables</button>
+            <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab" data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables" aria-selected="false">ingresos Variables</button>
         </li>
     </ul>
     <div class="tab-content" id="ingresosTabsContent">
         <div class="tab-pane fade show active" id="ingresos-fijos" role="tabpanel" aria-labelledby="ingresos-fijos-tab">
-
-            <!-- Listado de Ingresos Fijos -->
-            {% for ingreso in ingresos_fijos %}
-            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                <div>
-                    <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }}
-                    </span>
+            <!-- Listado de ingresos Fijos -->
+                <div class="container mt-5">
+                    <h2>Tabla de ingresos Fijos</h2>
+                    <div class="table-responsive">
+                        <table id="ingresos_fijos" class="table table-striped table-bordered display">
+                            <thead>
+                                <tr>
+                                    <!-- Definimos tres columnas -->
+                                    <th>Categoria</th>
+                                    <th>Descripcion</th>
+                                    <th>Monto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ingreso in ingresos_fijos %}
+                                <tr>
+                                    <td>{{ ingreso.categoria.nombre }}</td>
+                                    <td>{{ ingreso.observaciones }}</td>
+                                    <td>${{ ingreso.monto }}</td>
+                                    <td>
+                                        <!--Boton Ver-->
+                                        
+                                       <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarIngresosButton"  data-ingreso-id="{{ ingreso.id }}" data-bs-toggle="modal" data-bs-target="#movimientosIngresosModal" ><i class="bi bi-eye"></i></button>
+                                       <!--Boton Editar-->
+                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
+                                        <!--Boton Eliminar-->
+                                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div>
-                    <!-- Ver mas informacion -->
-                    <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
-
-                    <!-- Editar -->
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}"
-                        onclick="abrirModalEditar('{{ingreso.id}}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-
-                    <!-- Eliminar -->
-                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
-                        <i class="bi bi-trash"></i>
-                    </button>
-
-                </div>
-            </div>
-            {% empty %}
-            <div class="p-3">No hay ingresos fijos registrados.</div>
-            {% endfor %}
         </div>
-
+        
         <div class="tab-pane fade" id="ingresos-variables" role="tabpanel" aria-labelledby="ingresos-variables-tab">
-            <!-- Listado de Ingresos Variables -->
-            {% for ingreso in ingresos_variables %}
-            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                <div>
-                    <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }}
-                    </span>
-                </div>
-                <div>
-                    <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+            <!-- Listado de ingresos Variables -->
 
-                    <!-- Editar -->
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}"
-                        onclick="abrirModalEditar('{{ingreso.id}}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    
-                    <!-- Eliminar -->
-                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
-                        <i class="bi bi-trash"></i>
-                    </button>
+            <div class="container mt-5">
+                <h2>Tabla de ingresos Variables</h2>
+                <div class="table-responsive">
+                    <table id="ingresos_variables" class="table table-striped table-bordered display">
+                        <thead>
+                            <tr>
+                                <!-- Definimos tres columnas -->
+                                <th>Categoria</th>
+                                <th>Descripcion</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ingreso in ingresos_variables %}
+                            <tr>
+                                <td>{{ ingreso.categoria.nombre }}</td>
+                                <td>{{ ingreso.observaciones }}</td>
+                                <td>${{ ingreso.monto }}</td>
+                                <td>
+                                   <!--Boton Ver-->
+                                   <button type="button" class="btn btn-outline-primary btn-sm" ><i class="bi bi-eye"></i></button>
+                                   <!--Boton Editar-->
+                                   <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
+                                    <!--Boton Eliminar-->
+                                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {% empty %}
-            <div class="p-3">No hay ingresos variables registrados.</div>
-            {% endfor %}
+
         </div>
     </div>
+</div>
+
 </div>
 
 
@@ -353,7 +367,44 @@
     }
 </style>
 
+<!--Estilo de Tablas-->
+<style>
+    body {
+        background-color: #dfdfdf;
+    }
+    .form-section {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px; 
+        padding: 1%; 
+        margin: 1%; 
+    }
+    #fijo-checkbox{
+        margin-top:20%;
+     
+    }
+</style>
 
+
+<!--Tablas-->
+<script>
+    $(document).ready(function() {
+        $('#ingresos_fijos').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#ingresos_variables').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<!-- FinTablas-->
 
 <script>
     function toggleFields() {

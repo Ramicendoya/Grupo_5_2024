@@ -1,11 +1,11 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.db.models import Sum
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+from .models import Ingreso, MovimientoAhorro, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
@@ -275,9 +275,11 @@ class EliminarGastoView(View):
 
         return redirect('registrar_gasto')
 
-
+####################################################################################################
+####################################################################################################
 #    Ingresos:
-
+####################################################################################################
+####################################################################################################
 class IngresoView(View):
     def get(self, request):
         # Obtengo la lista de ingresos fijos y variables, que no esten dados de baja
@@ -323,6 +325,15 @@ class IngresoView(View):
 
             ingreso.save() # Guardo el ingreso para poder obtener su pk y asignarselo a la recurrencia
 
+            # Creo el movimiento, le asocio el ingreso y lo persisto
+            movimiento = MovimientoIngreso(
+                monto = monto,
+                fecha = timezone.now(),
+                ingreso = ingreso,
+            )
+
+            movimiento.save()
+
             frecuencia = request.POST.get('frecuencia')
             
             # Convercion de la frecuencia a días
@@ -361,6 +372,14 @@ class IngresoView(View):
                 metodo_pago = metodo_pago,
             )
             ingreso.save()
+
+            # Creo el movimiento, le asocio el ingreso y lo persisto
+            movimiento = MovimientoIngreso(
+                monto = monto,
+                fecha = timezone.now(),
+                ingreso = ingreso,
+            )
+            movimiento.save()
 
         return redirect('registrar_ingreso')
     
@@ -630,9 +649,11 @@ class ReporteFinancieroView(View):
 
 
 
-#
+####################################################################################################
+####################################################################################################
 # Obtener Saldo Actual y Futuro
-#
+####################################################################################################
+####################################################################################################
 
 class ObtenerSaldoActualView(View):
     def get(self, request):
@@ -724,6 +745,228 @@ class ObtenerSaldoFuturoView(View):
 
         saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
+    
+
+####################################################################################################
+####################################################################################################
+# Historico de saldos
+####################################################################################################
+####################################################################################################
+
+class ObtenerHistoricoSaldoView(View):
+    def get(self, request):
+        try:
+            persona = get_object_or_404(Persona, pk=1)
+
+            # Obtener el saldo actual y el historial de saldos
+            saldo_actual = self.calcular_saldo_actual(persona)
+            historial_saldos = self.calcular_historial_saldos(persona, saldo_actual)
+            
+            return JsonResponse({'historial_saldos': historial_saldos})
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def calcular_saldo_actual(self, persona):
+        """Calcula el saldo actual sumando ingresos y restando gastos."""
+        ingresos_total = Ingreso.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+        gastos_total = Gasto.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+        return ingresos_total - gastos_total
+
+    def calcular_historial_saldos(self, persona, saldo_actual):
+        """Calcula el saldo histórico mes a mes, incluyendo proyecciones futuras."""
+        historial_saldos = []
+        fecha_actual = timezone.now().date()
+
+        # Calcular saldo para cada mes en el último año
+        for mes in range(0, 12):
+            fecha_inicio_mes = fecha_actual - timedelta(days=30 * mes)
+            
+            # Inicializa el saldo del mes
+            ingresos_mes = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            gastos_mes = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            # Calcula el saldo del mes, asegurando que sea cero si no hay movimientos
+            saldo_mes = ingresos_mes - gastos_mes  # Calculamos el saldo del mes
+            historial_saldos.insert(0, {
+                'fecha': fecha_inicio_mes.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_mes  # Se mostrará cero si no hay ingresos ni gastos
+            })
+
+        # Proyección para los próximos 3 meses
+        for i in range(1, 4):
+            saldo_futuro = self.calcular_saldo_futuro(persona, 30 * i, saldo_actual)
+            futuro_fecha = fecha_actual + timedelta(days=30 * i)  # Fecha futura
+            historial_saldos.append({
+                'fecha': futuro_fecha.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_futuro
+            })
+
+        return historial_saldos
+
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        """Proyecta el saldo futuro en función de ingresos y gastos recurrentes."""
+        ingresos_futuros_total = 0
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        gastos_futuros_total = 0
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
+        return saldo_futuro
+    
+
+####################################################################################################
+####################################################################################################
+# Historico de saldos
+####################################################################################################
+####################################################################################################
+
+class ObtenerHistoricoSaldoView(View):
+    def get(self, request):
+        try:
+            persona = get_object_or_404(Persona, pk=1)
+
+            # Obtener el saldo actual y el historial de saldos
+            saldo_actual = self.calcular_saldo_actual(persona)
+            historial_saldos = self.calcular_historial_saldos(persona, saldo_actual)
+            
+            return JsonResponse({'historial_saldos': historial_saldos})
+
+        except Persona.DoesNotExist:
+            return JsonResponse({'error': 'Persona no encontrada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def calcular_saldo_actual(self, persona):
+        """Calcula el saldo actual sumando ingresos y restando gastos."""
+        ingresos_total = Ingreso.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+        gastos_total = Gasto.objects.filter(
+            persona=persona,
+            bl_baja=0
+        ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+        return ingresos_total - gastos_total
+
+    def calcular_historial_saldos(self, persona, saldo_actual):
+        """Calcula el saldo histórico mes a mes, incluyendo proyecciones futuras."""
+        historial_saldos = []
+        fecha_actual = timezone.now().date()
+
+        # Calcular saldo para cada mes en el último año
+        for mes in range(0, 12):
+            fecha_inicio_mes = fecha_actual - timedelta(days=30 * mes)
+            
+            # Inicializa el saldo del mes
+            ingresos_mes = Ingreso.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+
+            gastos_mes = Gasto.objects.filter(
+                persona=persona,
+                bl_baja=0,
+                fecha__year=fecha_inicio_mes.year,
+                fecha__month=fecha_inicio_mes.month
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            # Calcula el saldo del mes, asegurando que sea cero si no hay movimientos
+            saldo_mes = ingresos_mes - gastos_mes  # Calculamos el saldo del mes
+            historial_saldos.insert(0, {
+                'fecha': fecha_inicio_mes.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_mes  # Se mostrará cero si no hay ingresos ni gastos
+            })
+
+        # Proyección para los próximos 3 meses
+        for i in range(1, 4):
+            saldo_futuro = self.calcular_saldo_futuro(persona, 30 * i, saldo_actual)
+            futuro_fecha = fecha_actual + timedelta(days=30 * i)  # Fecha futura
+            historial_saldos.append({
+                'fecha': futuro_fecha.isoformat(),  # Formato ISO (YYYY-MM-DD)
+                'saldo': saldo_futuro
+            })
+
+        return historial_saldos
+
+
+    def calcular_saldo_futuro(self, persona, dias, saldo_actual):
+        """Proyecta el saldo futuro en función de ingresos y gastos recurrentes."""
+        ingresos_futuros_total = 0
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                ingresos_futuros_total += ingreso.monto * repeticiones
+
+        gastos_futuros_total = 0
+        gastos_fijos = Gasto.objects.filter(
+            persona=persona,
+            bl_fijo=1,
+            bl_baja=0
+        )
+
+        for gasto in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+            for recurrencia in recurrencias:
+                repeticiones = dias // recurrencia.frecuencia
+                gastos_futuros_total += gasto.monto * repeticiones
+
+        saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
+        return saldo_futuro
 
 
 #Meta 
@@ -757,6 +1000,56 @@ class MetaView(View):
         meta.save()
         return redirect('metas') 
     
+     
+    def metas_grafico(request):
+
+        # Filtramos las metas que no estan marcadas como baja
+        total_metas = Meta.objects.filter(bl_baja=False)
+        
+        # Filtra las metas donde el valor ahorrado es mayor o igual (gte) al valor de la meta
+        metas_cumplidas = total_metas.filter(ahorrado__gte=F('valor_meta')).count()
+        
+        # Filtra las metas donde el valor ahorrado es menor (lt) al valor de la meta
+        metas_no_cumplidas = total_metas.filter(ahorrado__lt=F('valor_meta')).count()
+
+        return JsonResponse({
+            'metas_cumplidas': metas_cumplidas,
+            'metas_no_cumplidas': metas_no_cumplidas
+        })
+    
+class AhorroView(View):
+    def get(self, request):
+        metas = Meta.objects.filter(bl_baja=False)
+        
+        context = {
+            'metas': metas,
+        }
+        
+        return render(request, 'ahorros.html', context)
+    def post(self, request):
+        # Obtiene los datos del formulario
+        monto = request.POST.get('monto')  # Obtiene el valor del campo 'monto'
+        meta_id = request.POST.get('meta')  # Obtiene el ID de la meta seleccionada
+
+        # Busca la meta en la base de datos
+        meta = get_object_or_404(Meta, pk=meta_id)
+        monto = Decimal(monto)
+
+        #Guarda el movimiento de ahorro
+        movimiento = MovimientoAhorro.objects.create(
+            monto=monto,
+            fecha=datetime.now().date(),  # Usa la fecha actual
+            meta=meta
+        )
+        
+
+        # Realiza acciones necesarias con los datos
+        # Por ejemplo, podrías actualizar el monto ahorrado en la meta
+        meta.ahorrado += monto
+        meta.save()
+
+        # Redirige o responde con éxito
+        return redirect('ahorro')  # Reemplaza con la vista a la que deseas redirigir
 class Calcular_meses_restantes(View):
     def post(self, request):
         # Obtener los datos del formulario

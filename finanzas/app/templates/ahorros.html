@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+<div class="container mt-5">
+    <!-- Título -->
+    <h3 class="mb-4 text-center">Ahorros</h3>
+
+    <div class="form-section mx-auto w-50">
+        <form method="POST" id="ahorroForm">
+            {% csrf_token %}
+
+            <!-- Monto -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="monto" class="form-label">Monto</label>
+                    <input type="number" class="form-control" id="monto" name="monto" required>
+                </div>
+            </div>
+            <!-- Switch para seleccionar Depositar o Retirar -->
+            <div class="row mb-3">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="operationSwitch" name="operationSwitch">
+                        <label class="form-check-label" for="operationSwitch" id="switchLabel">Depositar</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selección de metas -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="metas" class="form-label">Metas</label>
+                    <div class="input-group">
+                        <select class="form-select" id="metas" name="meta" required>
+                            {% for meta in metas %}
+                                <option value="{{ meta.id }}">{{ meta.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="add_meta">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de enviar -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Aceptar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Obtener los elementos
+    const operationSwitch = document.getElementById("operationSwitch");
+    const switchLabel = document.getElementById("switchLabel");
+    const montoInput = document.getElementById("monto");  // Aquí debes obtener el campo de monto
+
+    // Cambiar el texto dinámicamente según el estado del checkbox
+    operationSwitch.addEventListener("change", function() {
+        if (operationSwitch.checked) {
+            // Si el switch está activado (Retirar)
+            switchLabel.textContent = "Retirar";  // Cambia el texto del label del switch a 'Retirar'
+        } else {
+            // Si el switch está desactivado (Depositar)
+            switchLabel.textContent = "Depositar";  // Cambia el texto del label del switch a 'Depositar'
+        }
+    });
+
+    // Antes de enviar el formulario, ajustamos el monto si es retiro
+    document.getElementById("ahorroForm").addEventListener("submit", function(event) {
+        if (operationSwitch.checked) {
+            // Si es retiro, hacemos el monto negativo
+            montoInput.value = -Math.abs(montoInput.value);  // Se asegura que el monto sea negativo si es retiro
+        } else {
+            // Si es depósito, lo dejamos positivo
+            montoInput.value = Math.abs(montoInput.value);  // Se asegura que el monto sea positivo si es depósito
+        }
+    });
+</script>
+
+
+
+
+
+{% endblock %}
