@@ -869,17 +869,17 @@ class ObtenerSaldoActualView(View):
     def get(self, request):
         try:
             # Obtener la persona autenticada
-            persona = get_object_or_404(Persona, pk=1)  # Reemplazar '1' por el campo que identifica al usuario autenticado
+            persona = get_object_or_404(Persona, pk=1)  # Ajustar según autenticación
 
-            # Calcular los ingresos totales (sumar los movimientos de ingresos activos)
+            # Calcular los ingresos totales
             ingresos_total = MovimientoIngreso.objects.filter(
                 ingreso__persona=persona,
                 bl_baja=0
             ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-            # Calcular los gastos totales (sumar los movimientos de gastos activos)
-            gastos_total = MovimientoGasto.objects.filter(
-                gasto__persona=persona,
+            # Calcular los gastos totales desde la tabla Gasto
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
@@ -894,12 +894,11 @@ class ObtenerSaldoActualView(View):
             # Retornar el saldo en un JsonResponse
             return JsonResponse({'saldo_actual': saldo_actual})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-        
+            return JsonResponse({'error': str(e)}, status=500)        
 class ObtenerSaldoFuturoView(View):
     def get(self, request):
         try:
-            persona_id = 1  # Asumimos que el ID de la persona es 1
+            persona_id = 1  # Ajustar según autenticación
             persona = get_object_or_404(Persona, pk=persona_id)
 
             # Obtener saldo actual desde movimientos
@@ -908,8 +907,8 @@ class ObtenerSaldoFuturoView(View):
                 bl_baja=0
             ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-            gastos_total = MovimientoGasto.objects.filter(
-                gasto__persona=persona,
+            gastos_total = Gasto.objects.filter(
+                persona=persona,
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
@@ -919,9 +918,7 @@ class ObtenerSaldoFuturoView(View):
             ).aggregate(total_ahorros=Sum('monto'))['total_ahorros'] or 0
 
             # Calcular el saldo actual
-            saldo_actual = ingresos_total - gastos_total - ahorros_total            
-    
- 
+            saldo_actual = ingresos_total - gastos_total - ahorros_total
 
             # Calcular saldo futuro
             saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
@@ -940,35 +937,35 @@ class ObtenerSaldoFuturoView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
     def calcular_saldo_futuro(self, persona, dias, saldo_actual):
-        ingresos_futuros_total = 0
-        ingresos_fijos = MovimientoIngreso.objects.filter(
-            ingreso__persona=persona,
-            ingreso__bl_fijo=0,
-            bl_baja=0
+        # Ingresos fijos desde la tabla Ingreso
+        ingresos_fijos = Ingreso.objects.filter(
+            persona=persona,
+            bl_fijo=True,
+            bl_baja=False
         )
-
-        for movimiento in ingresos_fijos:
-            recurrencias = Recurrencia.objects.filter(ingreso=movimiento.ingreso, bl_baja=False)
+        ingresos_futuros_total = 0
+        for ingreso in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=False)
             for recurrencia in recurrencias:
                 repeticiones = dias // recurrencia.frecuencia
-                ingresos_futuros_total += movimiento.monto * repeticiones
+                ingresos_futuros_total += ingreso.monto * repeticiones
 
-        gastos_futuros_total = 0
+        # Gastos fijos desde la tabla MovimientoGasto
         gastos_fijos = MovimientoGasto.objects.filter(
             gasto__persona=persona,
-            gasto__bl_fijo=0,
-            bl_baja=0
+            gasto__bl_fijo=True,
+            bl_baja=False
         )
-
+        gastos_futuros_total = 0
         for movimiento in gastos_fijos:
             recurrencias = Recurrencia.objects.filter(gasto=movimiento.gasto, bl_baja=False)
             for recurrencia in recurrencias:
                 repeticiones = dias // recurrencia.frecuencia
                 gastos_futuros_total += movimiento.monto * repeticiones
 
+        # Calcular saldo futuro
         saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
-    
 class ObtenerAhorroEIngresosFijosView(View):
     def get(self, request):
         try:
