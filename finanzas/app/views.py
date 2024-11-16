@@ -81,7 +81,7 @@ class Home(View):
         else:
             ingresos_por_categoria = []
 
-
+        print(categorias)
         # Creo el contexto para pasarlo al template
         context = {
             'gastos': list(gastos.values('id', 'nombre', 'observaciones', 'monto', 'fecha', 'categoria__nombre')),
@@ -498,6 +498,15 @@ class MovimientoIngresoView(View):
                 return JsonResponse({'movimientos_ingresos': movimientos_data})
             else:
                 return JsonResponse({'error': 'ingreso no pertenece a la persona autenticada'}, status=404)
+
+
+class ConfirmarIngreso(View):
+    def post(self, request, gasto_pk):
+        # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+            # Busco el Gasto por la pk que se pasa en la URL
+            ingeso = get_object_or_404(Gasto, pk=gasto_pk)
+            movimientos_ingresos =  MovimientoIngreso.objects.filter(ingeso=ingeso,bl_baja=0)
 
 
 #
