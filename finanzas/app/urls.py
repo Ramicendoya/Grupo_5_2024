@@ -28,7 +28,7 @@ urlpatterns = [
     path('ingresos/editar/<int:ingreso_pk>/', EditarIngresoView.as_view(), name='editar_ingreso'),
     
     path('movimientos_ingresos/<int:ingreso_pk>/', MovimientoIngresoView.as_view(), name='movimientos_ingresos'),
-    path('movimientos_gastos/ConfirmarGasto/<int:gasto_pk>/', ConfirmarIngreso.as_view(), name='confirmar_gasto'),
+    path('movimientos_ingresos/ConfirmarIngreso/<int:ingreso_pk>/', ConfirmarIngreso.as_view(), name='confirmar_ingreso'),
 
     # Reporte Financiero
     path('ver/reporteFinanciero/<str:tipo>/<int:anio>/<int:mes>/', ReporteFinancieroView.as_view(), name='reporte_financiero'),
