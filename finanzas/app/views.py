@@ -673,8 +673,13 @@ class ObtenerSaldoActualView(View):
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
+            ahorro = MovimientoAhorro.objects.filter(
+                gasto__persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
             # Calcular el saldo actual
-            saldo_actual = ingresos_total - gastos_total
+            saldo_actual = ingresos_total - gastos_total - ahorro
 
             # Retornar el saldo en un JsonResponse
             return JsonResponse({'saldo_actual': saldo_actual})
@@ -698,7 +703,12 @@ class ObtenerSaldoFuturoView(View):
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
-            saldo_actual = ingresos_total - gastos_total
+            ahorro = MovimientoAhorro.objects.filter(
+                gasto__persona=persona,
+                bl_baja=0
+            ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+
+            saldo_actual = ingresos_total - gastos_total - ahorro
 
             # Calcular saldo futuro
             saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
