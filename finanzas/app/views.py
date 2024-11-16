@@ -883,8 +883,13 @@ class ObtenerSaldoActualView(View):
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
+            ahorros_total = MovimientoAhorro.objects.filter(
+                meta__bl_baja=0,
+                bl_baja=0
+            ).aggregate(total_ahorros=Sum('monto'))['total_ahorros'] or 0
+
             # Calcular el saldo actual
-            saldo_actual = ingresos_total - gastos_total
+            saldo_actual = ingresos_total - gastos_total - ahorros_total
 
             # Retornar el saldo en un JsonResponse
             return JsonResponse({'saldo_actual': saldo_actual})
@@ -908,7 +913,15 @@ class ObtenerSaldoFuturoView(View):
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
-            saldo_actual = ingresos_total - gastos_total
+            ahorros_total = MovimientoAhorro.objects.filter(
+                meta__bl_baja=0,
+                bl_baja=0
+            ).aggregate(total_ahorros=Sum('monto'))['total_ahorros'] or 0
+
+            # Calcular el saldo actual
+            saldo_actual = ingresos_total - gastos_total - ahorros_total            
+    
+ 
 
             # Calcular saldo futuro
             saldo_futuro_1_mes = self.calcular_saldo_futuro(persona, 30, saldo_actual)
@@ -930,8 +943,8 @@ class ObtenerSaldoFuturoView(View):
         ingresos_futuros_total = 0
         ingresos_fijos = MovimientoIngreso.objects.filter(
             ingreso__persona=persona,
-            ingreso__bl_fijo=True,
-            bl_baja=False
+            ingreso__bl_fijo=0,
+            bl_baja=0
         )
 
         for movimiento in ingresos_fijos:
@@ -943,8 +956,8 @@ class ObtenerSaldoFuturoView(View):
         gastos_futuros_total = 0
         gastos_fijos = MovimientoGasto.objects.filter(
             gasto__persona=persona,
-            gasto__bl_fijo=True,
-            bl_baja=False
+            gasto__bl_fijo=0,
+            bl_baja=0
         )
 
         for movimiento in gastos_fijos:
@@ -955,6 +968,43 @@ class ObtenerSaldoFuturoView(View):
 
         saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
+    
+class ObtenerAhorroEIngresosFijosView(View):
+    def get(self, request):
+        try:
+            # Obtener la persona autenticada
+            persona = get_object_or_404(Persona, pk=1)  # Ajusta según tu autenticación
+
+            # Calcular total ahorrado
+            total_ahorrado = MovimientoAhorro.objects.filter(
+                meta__bl_baja=0,
+                bl_baja=0
+            ).aggregate(total_ahorrado=Sum('monto'))['total_ahorrado'] or 0
+
+            # Calcular ingresos fijos
+            ingresos_fijos = Ingreso.objects.filter(
+                persona=persona,
+                bl_fijo=1,
+                bl_baja=0
+            ).aggregate(total_ingresos_fijos=Sum('monto'))['total_ingresos_fijos'] or 0
+
+            gastos_fijos = Gasto.objects.filter(
+                persona=persona,
+                bl_fijo=1,
+                bl_baja=0
+            ).aggregate(total_gastos_fijos=Sum('monto'))['total_gastos_fijos'] or 0
+
+            # Calcular flujo (ingresos fijos - gastos fijos)
+            flujo = ingresos_fijos - gastos_fijos
+
+            # Retornar los datos en un JsonResponse
+            return JsonResponse({
+                'total_ahorrado': total_ahorrado,
+                'flujo': flujo
+            })
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 ####################################################################################################
 ####################################################################################################

@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import AhorroView,Calcular_meses_restantes,GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerHistoricoSaldoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarYEditarGasto,ConfirmarGasto, ConfirmarIngreso, ConfirmarYEditarIngreso,MovimientoIngresoView
+from .views import AhorroView,Calcular_meses_restantes,GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerHistoricoSaldoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarYEditarGasto,ConfirmarGasto, ConfirmarIngreso, ConfirmarYEditarIngreso,MovimientoIngresoView, ObtenerAhorroEIngresosFijosView
 
 
 
@@ -41,6 +41,7 @@ urlpatterns = [
     # Saldo Actual y Futuro
     path('saldo-actual/', ObtenerSaldoActualView.as_view(), name='saldo_actual'),
     path('saldo-futuro/', ObtenerSaldoFuturoView.as_view(), name='saldo_futuro'),
+    path('api/ahorro-ingresos-fijos/', ObtenerAhorroEIngresosFijosView.as_view(), name='ahorro_ingresos_fijos'),
 
     # Historico de saldos
     path('saldos-historicos/', ObtenerHistoricoSaldoView.as_view(), name='saldos-historicos'),
