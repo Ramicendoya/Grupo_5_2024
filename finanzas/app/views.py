@@ -1,11 +1,11 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
-from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
+from .models import Ingreso, MovimientoAhorro, Persona, Categoria,Recurrencia,Gasto, MovimientoIngreso, MovimientoGasto,Meta
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
@@ -1016,3 +1016,38 @@ class MetaView(View):
             'metas_cumplidas': metas_cumplidas,
             'metas_no_cumplidas': metas_no_cumplidas
         })
+    
+class AhorroView(View):
+    def get(self, request):
+        metas = Meta.objects.filter(bl_baja=False)
+        
+        context = {
+            'metas': metas,
+        }
+        
+        return render(request, 'ahorros.html', context)
+    def post(self, request):
+        # Obtiene los datos del formulario
+        monto = request.POST.get('monto')  # Obtiene el valor del campo 'monto'
+        meta_id = request.POST.get('meta')  # Obtiene el ID de la meta seleccionada
+
+        # Busca la meta en la base de datos
+        meta = get_object_or_404(Meta, pk=meta_id)
+        monto = Decimal(monto)
+
+        #Guarda el movimiento de ahorro
+        movimiento = MovimientoAhorro.objects.create(
+            monto=monto,
+            fecha=datetime.now().date(),  # Usa la fecha actual
+            meta=meta
+        )
+        
+
+        # Realiza acciones necesarias con los datos
+        # Por ejemplo, podrías actualizar el monto ahorrado en la meta
+        meta.ahorrado += monto
+        meta.save()
+
+        # Redirige o responde con éxito
+        return redirect('ahorro')  # Reemplaza con la vista a la que deseas redirigir
+        
