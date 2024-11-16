@@ -604,7 +604,32 @@ class CategoriaView(View):
             return redirect('home')
 
 
-
+class MovimientoIngresoView(View):
+    def get(self, request, ingreso_pk):
+          # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+            # Busco el ingreso por la pk que se pasa en la URL
+            ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
+            movimientos_ingresos =  MovimientoIngreso.objects.filter(ingreso=ingreso,bl_baja=0)
+    
+            # Verifico si el ingreso pertenece a la persona
+            if ingreso.persona == persona:
+                if not movimientos_ingresos:
+                    return JsonResponse({'movimientos_ingresos': []})
+                movimientos_data = []
+                for movimiento in movimientos_ingresos:
+                    movimientos_data.append({
+                    'categoria': movimiento.ingreso.categoria.nombre,
+                    'descripcion': movimiento.ingreso.descripcion,
+                    'metodo_pago':movimiento.ingreso.metodo_pago,
+                    'monto': movimiento.monto,
+                    'fecha': movimiento.fecha.strftime('%Y-%m-%d')  # Formateamos la fecha
+                })
+                print(movimientos_data)
+                return JsonResponse({'movimientos_ingresos': movimientos_data})
+            else:
+                return JsonResponse({'error': 'ingreso no pertenece a la persona autenticada'},status=404)
+                                    
 ####################################################################################################
 ####################################################################################################
 #  Reporte Financiero

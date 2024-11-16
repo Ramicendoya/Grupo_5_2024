@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarYEditarGasto,ConfirmarGasto, ConfirmarIngreso, ConfirmarYEditarIngreso
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarYEditarGasto,ConfirmarGasto, ConfirmarIngreso, ConfirmarYEditarIngreso,MovimientoIngresoView
 
 
 urlpatterns = [
@@ -33,7 +33,7 @@ urlpatterns = [
 
     path('movimientos_ingresos/ConfirmarIngreso/<int:ingreso_pk>/', ConfirmarIngreso.as_view(), name='confirmar_ingreso'),
     path('confirmarYEditarIngreso/<int:ingreso_pk>/', ConfirmarYEditarIngreso.as_view(), name='confirmarYEditaringreso'),
-
+    path('movimientos_ingresos/<int:ingreso_pk>/', MovimientoIngresoView.as_view(), name='movimientos_ingresos'),
     # Reporte Financiero
     path('ver/reporteFinanciero/<str:tipo>/<int:anio>/<int:mes>/', ReporteFinancieroView.as_view(), name='reporte_financiero'),
     
