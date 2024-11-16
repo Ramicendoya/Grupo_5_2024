@@ -61,21 +61,41 @@
         </div>
     </header>
     
-    <!-- KPI Cards for Saldo Actual y Saldo Futuro -->
+    <!-- KPI Cards Section -->
     <div class="row my-4">
-        <div class="col-md-4 offset-md-2 text-center">
+        <!-- Saldo Actual -->
+        <div class="col-md-3 text-center">
             <div class="card p-3 bg-primary text-white">
                 <h5>Saldo Actual</h5>
                 <h3 id="saldo-actual">$0.00</h3>
             </div>
         </div>
-        <div class="col-md-4 text-center">
+        
+        <!-- Saldo Futuro -->
+        <div class="col-md-3 text-center">
             <div class="card p-3 bg-success text-white">
                 <h5>Saldo Futuro</h5>
                 <h3 id="saldo-futuro">$0.00</h3>
             </div>
         </div>
+
+        <!-- Total Ahorrado -->
+        <div class="col-md-3 text-center">
+            <div class="card p-3 bg-warning text-dark">
+                <h5>Total Ahorrado</h5>
+                <h3 id="total-ahorrado">$0.00</h3>
+            </div>
+        </div>
+        
+        <!-- Flujo de Saldos -->
+        <div class="col-md-3 text-center">
+            <div class="card p-3 bg-info text-white">
+                <h5>Flujo de Saldos</h5>
+                <h3 id="flujo-saldos">$0.00</h3>
+            </div>
+        </div>
     </div>
+</div>
 
 
     <!-- Filter Section -->
@@ -253,6 +273,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         fetchSaldoActual();
         fetchSaldoFuturo();
+        fetchAhorroEIngresosFijos(); // Nueva función para obtener los nuevos KPIs
     });
 
     function fetchSaldoActual() {
@@ -287,8 +308,23 @@
         }
         document.getElementById('saldo-futuro').textContent = `$${saldoFuturo}`;
     }
-    
+
+    // Nueva función para obtener el Total Ahorrado e Ingresos Fijos
+    function fetchAhorroEIngresosFijos() {
+        fetch('{% url "ahorro_ingresos_fijos" %}') // URL de la vista que retorna estos valores
+            .then(response => response.json())
+            .then(data => {
+                const totalAhorrado = parseFloat(data.total_ahorrado).toFixed(2);
+                const ingresosFijos = parseFloat(data.flujo).toFixed(2);
+
+                // Mostrar en los elementos correspondientes
+                document.getElementById('total-ahorrado').textContent = `$${totalAhorrado}`;
+                document.getElementById('ingresos-fijos').textContent = `$${ingresosFijos}`;
+            })
+            .catch(error => console.error('Error fetching ahorro e ingresos fijos:', error));
+    }
 </script>
+
 
 
 <!-- Grafico Categorias -->
