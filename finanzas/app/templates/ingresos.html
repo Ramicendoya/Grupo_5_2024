@@ -144,14 +144,15 @@
 <div class="form-section">
     <ul class="nav nav-tabs" id="ingresosTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab" data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos" aria-selected="true">ingresos Fijos</button>
+            <button class="nav-link active" id="ingresos-fijos-tab" data-bs-toggle="tab" data-bs-target="#ingresos-fijos" type="button" role="tab" aria-controls="ingresos-fijos" aria-selected="true">Ingresos Fijos</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab" data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables" aria-selected="false">ingresos Variables</button>
+            <button class="nav-link" id="ingresos-variables-tab" data-bs-toggle="tab" data-bs-target="#ingresos-variables" type="button" role="tab" aria-controls="ingresos-variables" aria-selected="false">Ingresos Variables</button>
         </li>
     </ul>
     <div class="tab-content" id="ingresosTabsContent">
         <div class="tab-pane fade show active" id="ingresos-fijos" role="tabpanel" aria-labelledby="ingresos-fijos-tab">
+            
             <!-- Listado de ingresos Fijos -->
                 <div class="container mt-5">
                     <h2>Tabla de ingresos Fijos</h2>
@@ -170,14 +171,14 @@
                                 {% for ingreso in ingresos_fijos %}
                                 <tr>
                                     <td>{{ ingreso.categoria.nombre }}</td>
-                                    <td>{{ ingreso.observaciones }}</td>
+                                    <td>{{ ingreso.descripcion }}</td>
                                     <td>${{ ingreso.monto }}</td>
                                     <td>
                                         <!--Boton Ver-->
                                         
                                        <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarIngresosButton"  data-ingreso-id="{{ ingreso.id }}" data-bs-toggle="modal" data-bs-target="#movimientosIngresosModal" ><i class="bi bi-eye"></i></button>
                                        <!--Boton Editar-->
-                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
+                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id_edit="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
                                         <!--Boton Eliminar-->
                                         <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
                                     </td>
@@ -349,6 +350,37 @@
     </div>
 </div>
 
+<!-- Modal para visualizar historial de ingresos fijos -->
+<div class="modal fade" id="movimientosIngresosModal" tabindex="-1" aria-labelledby="movimientosIngresosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="movimientosIngresosModalLabel">Movimientos de Ingresos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabla para mostrar los movimientos -->
+                <table class="table table-striped table-bordered" id="ingresosTable">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Descripcion</th>
+                            <th>Metodo de pago</th>
+                            <th>Monto</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los registros se llenarán con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 <style>
     body {
         background-color: #dfdfdf;
@@ -519,4 +551,50 @@
 
 </script>
 
+<!--Funcion para traer todos los mov-->
+<script>
+    $(document).on('click', '[data-ingreso-id]', function() {
+        const ingresoId = $(this).data('ingreso-id');  // Obtén el ID del ingreso desde el atributo data-ingreso-id
+        console.log("ID de ingreso:", ingresoId);  // Verifica que el ID sea correcto
+        // Limpiar la tabla antes de cargar nuevos datos
+        $('#ingresosTable tbody').empty();
+        // Realiza la solicitud AJAX para obtener los movimientos de ese ingreso
+        $.ajax({
+            url: `/movimientos_ingresos/${ingresoId}/`,  // URL para obtener los datos del ingreso
+            type: 'GET',
+            success: function(response) {
+                if (response.movimientos_ingresos && response.movimientos_ingresos.length > 0) {
+                    // Si hay movimientos, agregar las filas a la tabla
+                    response.movimientos_ingresos.forEach(function(movimiento) {
+                        $('#ingresosTable tbody').append(`
+                            <tr>
+                                <td>${movimiento.categoria}</td>
+                                <td>${movimiento.descripcion}</td>
+                                <td>${movimiento.metodo_pago}</td>
+                                <td>${movimiento.monto}</td>
+                                <td>${movimiento.fecha}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    // Si no hay movimientos, muestra un mensaje indicando esto
+                    $('#ingresosTable tbody').append(`
+                        <tr>
+                            <td colspan="4">No hay movimientos de ingresos registrados para este ingreso.</td>
+                        </tr>
+                    `);
+                }
+    
+                // Mostrar el modal
+                $('#movimientosIngresosModal').modal('show');
+            },
+            error: function(xhr, status, error) {
+                console.log("Error al cargar los datos:", error);
+                alert('Hubo un error al cargar los datos.');
+            }
+        });
+    });
+    
+    
+</script>
 {% endblock %}
