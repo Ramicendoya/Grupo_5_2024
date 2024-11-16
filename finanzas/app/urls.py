@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.utils import timezone
 from django.views import View
-from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerHistoricoSaldoView, ObtenerGastoView, EditarGastoView, MetaView
+from .views import GastoView,CategoriaView,EliminarGastoView,EditarIngresoView, CategoriaView, Home, IngresoView, EliminarIngreso, ObtenerIngresoView , PromocionesView,ReporteFinancieroView,ObtenerSaldoActualView, ObtenerSaldoFuturoView, ObtenerHistoricoSaldoView, ObtenerGastoView, EditarGastoView,MovimientoGastoView, MetaView,ConfirmarYEditarGasto,ConfirmarGasto, ConfirmarIngreso, ConfirmarYEditarIngreso
 
 
 urlpatterns = [
@@ -19,6 +19,10 @@ urlpatterns = [
     path('gastos/obtener/<int:gasto_pk>/', ObtenerGastoView.as_view(), name='obtener_gasto'),
     path('gastos/editar/<int:gasto_pk>/', EditarGastoView.as_view(), name='editar_gasto'),
 
+    path('movimientos_gastos/<int:gasto_pk>/', MovimientoGastoView.as_view(), name='movimientos_gastos'),
+
+    path('confirmarGasto/<int:gasto_pk>/', ConfirmarGasto.as_view(), name='confirmar_gasto'),
+    path('confirmarYEditarGasto/<int:gasto_pk>/', ConfirmarYEditarGasto.as_view(), name='confirmarYEditargasto'),
 
     # Registrar Ingresos
     path('registrar/ingreso/', IngresoView.as_view(), name='registrar_ingreso'),
@@ -26,6 +30,9 @@ urlpatterns = [
     path('registrar/<str:origen>/cargarCategoria/', CategoriaView.as_view(), name='cargar_categoria'),
     path('ingresos/obtener/<int:ingreso_pk>/', ObtenerIngresoView.as_view(), name='obtener_ingreso'),
     path('ingresos/editar/<int:ingreso_pk>/', EditarIngresoView.as_view(), name='editar_ingreso'),
+
+    path('movimientos_ingresos/ConfirmarIngreso/<int:ingreso_pk>/', ConfirmarIngreso.as_view(), name='confirmar_ingreso'),
+    path('confirmarYEditarIngreso/<int:ingreso_pk>/', ConfirmarYEditarIngreso.as_view(), name='confirmarYEditaringreso'),
 
     # Reporte Financiero
     path('ver/reporteFinanciero/<str:tipo>/<int:anio>/<int:mes>/', ReporteFinancieroView.as_view(), name='reporte_financiero'),

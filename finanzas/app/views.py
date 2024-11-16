@@ -9,7 +9,9 @@ from .models import Ingreso, Persona, Categoria,Recurrencia,Gasto, MovimientoIng
 from django.utils import timezone
 from django.views import View
 from decimal import Decimal
-
+#Se agergo desde aca 13112024 en la facu
+from django.db import connection
+#Se agergo hasta aca 13112024 en la facu
 
 class Home(View):
     def get(self, request):
@@ -120,7 +122,42 @@ class Home(View):
 
         # Convierte el contexto a JSON
         context_json = json.dumps(context)
-        return render(request, 'home.html', {'context': context_json})
+#Se agergo desde aca 13112024 en la facu
+        with connection.cursor() as cursor:
+            # Ejecuta la consulta sobre la vista
+            cursor.execute("SELECT * FROM gastos_pendientes")
+            # Obtiene todos los resultados
+            resultados = cursor.fetchall()
+
+            cursor.execute("SELECT * FROM ingresos_pendientes")
+            # Obtiene todos los resultados
+            resultados_ingreso = cursor.fetchall()
+
+        # Procesa los resultados (opcional)
+        gastos_pendientes = []
+        ingresos_pendientes = []
+        for fila in resultados:
+            gastos_pendientes.append({
+                'id_categoria': fila[0],
+                'categoria': fila[1],
+                'id_gasto': fila[2],
+                'nombre': fila[3],
+                'monto': fila[4]
+            })
+        #Agregado el 15/11/2024
+        for fila_ingreso in resultados_ingreso:
+            ingresos_pendientes.append({
+                'id_categoria': fila_ingreso[0],
+                'categoria': fila_ingreso[1],
+                'id_ingreso': fila_ingreso[2],
+                'nombre': fila_ingreso[3],
+                'monto': fila_ingreso[4]
+            })
+        #Agregado hasta aca el 15/11/2024
+        print(ingresos_pendientes)
+        #Ya esta terminado. falta que se agregue en el acordeon lo que devuelve gastos y agregarle un boton que ese boton sea pagar o modificar y pagar
+        #Se agergo hasta aca 13112024 en la facu
+        return render(request, 'home.html', {'context': context_json,'gastos_pendientes':gastos_pendientes,'ingresos_pendientes':ingresos_pendientes})
 
 class PromocionesView(View):
     def get(self, request):
@@ -155,13 +192,20 @@ class GastoView(View):
                 observaciones=request.POST.get('nombre_gasto'),
                 persona=Persona.objects.first(),
                 categoria = Categoria.objects.get(id=categoria_id),
-                metodo_pago=request.POST.get('metodo_pago'),
+                metodo_pago=(request.POST.get('metodo_pago')).capitalize(),
                 fecha = timezone.now().date(),
                 bl_fijo='tipo_gasto' in request.POST,
             )
-            
+            #Se agergo desde aca 13112024 en la facu
             gasto.save()
-
+            movimientogasto=MovimientoGasto(
+                monto=request.POST.get('monto'),
+                fecha = timezone.now().date(),
+                bl_baja=0,
+                gasto=gasto,
+            )
+            movimientogasto.save()
+            #Se agergo hasta aca 13112024 en la facu
             frecuencia = request.POST.get('frecuencia')
 
             if frecuencia == 'diario':
@@ -190,11 +234,20 @@ class GastoView(View):
                 observaciones=request.POST.get('nombre_gasto'),
                 persona=Persona.objects.first(),
                 categoria = Categoria.objects.get(id=categoria_id),
-                metodo_pago=request.POST.get('metodo_pago'),
+                metodo_pago=(request.POST.get('metodo_pago')).capitalize(),
                 fecha = timezone.now().date(),
                 bl_fijo='tipo_gasto' in request.POST,
             )
             gasto.save()
+            #Se agergo desde aca 13112024 en la facu
+            movimientogasto=MovimientoGasto(
+                monto=request.POST.get('monto'),
+                fecha = timezone.now().date(),
+                bl_baja=0,
+                gasto=gasto,
+            )
+            movimientogasto.save
+            #Se agergo hasta aca 13112024 en la facu
         return redirect('registrar_gasto')
     
 class ObtenerGastoView(View):
@@ -242,14 +295,24 @@ class EditarGastoView(View):
         print(categoria_id)
         gasto.categoria = get_object_or_404(Categoria, id=categoria_id)
         gasto.metodo_pago = request.POST.get('metodo_pago')
-
+        gasto.fecha=timezone.now().date()
         gasto.save()
+        #Se agergo desde aca 13112024 en la facu
+       # movimientogasto=MovimientoGasto(
+       #    monto=request.POST.get('monto'),
+       #     fecha = timezone.now().date(),
+       #     bl_baja=0,
+       #    gasto=gasto,
+       # )
+       #movimientogasto.save()
+        #Se agergo hasta aca 13112024 en la facu
         messages.success(request, "Gasto actualizado con éxito.")
         return redirect('registrar_gasto')
      
    
 class EliminarGastoView(View):
     def post(self, request, gasto_pk):
+        #print(gasto_pk)
         #parametros_post = request.POST.dict()
         #return JsonResponse(parametros_post)
         # Esto tenemos que reemplazarlo por la persona autenticada en la aplicacion
@@ -257,7 +320,7 @@ class EliminarGastoView(View):
         
         # Busco el ingreso por la pk que se pasa en la URL
         gasto = get_object_or_404(Gasto, pk=gasto_pk)
-
+        
         # Verifico si el ingreso pertenece a la persona
         if gasto.persona == persona:
             gasto.bl_baja = True
@@ -275,8 +338,87 @@ class EliminarGastoView(View):
 
         return redirect('registrar_gasto')
 
-####################################################################################################
-####################################################################################################
+class MovimientoGastoView(View):
+    def get(self, request, gasto_pk):
+          # Busco la persona
+            persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+            gasto = get_object_or_404(Gasto, pk=gasto_pk)
+            movimientos_gastos =  MovimientoGasto.objects.filter(gasto=gasto,bl_baja=0)
+    
+            # Verifico si el Gasto pertenece a la persona
+            if gasto.persona == persona:
+                if not movimientos_gastos:
+                    return JsonResponse({'movimientos_gastos': []})
+
+                movimientos_data = []
+                for movimiento in movimientos_gastos:
+                    movimientos_data.append({
+                    'categoria': movimiento.gasto.categoria.nombre,
+                    'descripcion': movimiento.gasto.observaciones,
+                    'metodo_pago':movimiento.gasto.metodo_pago,
+                    'monto': movimiento.monto,
+                    'fecha': movimiento.fecha.strftime('%Y-%m-%d')  # Formateamos la fecha
+                })
+                print(movimientos_data)
+                return JsonResponse({'movimientos_gastos': movimientos_data})
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+
+class ConfirmarYEditarGasto(View):
+    def post(self, request, gasto_pk):
+        print("entro")
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        # Busco el Gasto por la pk que se pasa en la URL
+        gasto = get_object_or_404(Gasto, pk=gasto_pk)
+
+        if gasto.persona == persona:
+            gasto.monto = request.POST.get('monto')
+            gasto.save()
+            movimientogasto=MovimientoGasto(
+            monto=request.POST.get('monto'),
+            fecha = timezone.now().date(),
+            bl_baja=0,
+            gasto=gasto,
+            )
+            movimientogasto.save()
+            
+            referer = request.META.get('HTTP_REFERER')
+            if referer:
+                return redirect(referer)    
+                
+
+            else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+        
+#Se agrego el 15/11/2024 16:39
+class ConfirmarGasto(View):
+    def post(self, request, gasto_pk):
+        # Busco la persona
+           persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el Gasto por la pk que se pasa en la URL
+           gasto = get_object_or_404(Gasto, pk=gasto_pk)
+           print(gasto)
+           if gasto.persona == persona:
+
+                movimientogasto=MovimientoGasto(
+                    monto=gasto.monto,
+                    fecha = timezone.now().date(),
+                    bl_baja=0,
+                    gasto=gasto,
+                )
+                movimientogasto.save()
+                referer = request.META.get('HTTP_REFERER')
+                if referer:
+                    return redirect(referer) 
+           else:
+                return JsonResponse({'error': 'Gasto no pertenece a la persona autenticada'}, status=404)
+           
+#Se agrego el 15/11/2024 16:39
 #    Ingresos:
 ####################################################################################################
 ####################################################################################################
@@ -478,18 +620,6 @@ class CategoriaView(View):
         else:
             # Si el origen no es válido
             return redirect('home')
-
-   
-class EliminarGastoView(View):
-    def post(self, request):        
-        gasto = get_object_or_404(Gasto, id=request.POST.get('id_gasto'))
-        
-        # Modificamos el campo bl_baja del objeto existente
-        gasto.bl_baja = 1
-        gasto.save()
-
-        # Redireccionamos a la vista de registrar_gasto
-        return redirect('registrar_gasto')
 
 
 

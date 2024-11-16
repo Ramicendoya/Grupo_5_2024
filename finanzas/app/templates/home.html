@@ -60,7 +60,7 @@
             <h1>Saldo Actual y Estimado</h1>
         </div>
     </header>
-
+    
     <!-- KPI Cards for Saldo Actual y Saldo Futuro -->
     <div class="row my-4">
         <div class="col-md-4 offset-md-2 text-center">
@@ -77,6 +77,7 @@
         </div>
     </div>
 
+
     <!-- Filter Section -->
     <div class="row my-3 justify-content-center align-items-center">
         <div class="col-md-2 text-end">
@@ -90,6 +91,108 @@
             </select>
         </div>
     </div>
+
+
+    <!--Acordeon-->
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+              Gastos sin confirmacion de pagos
+            </button>
+          </h2>
+          <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!--Tabla gastos-->
+                    <div class="gastos-container">
+                        {% if gastos_pendientes %}
+                        {% for gasto in gastos_pendientes %}
+                        <div class="gasto-item rounded-pill p-2" style="font-size: 0.9rem;">
+                            <div class="gasto-campo"><strong>Categoria: </strong>{{ gasto.categoria }}</div>
+                            <div class="gasto-campo"><strong>Nombre: </strong>{{ gasto.nombre }}</div>
+                            <div class="gasto-campo"><strong>Monto: </strong>${{ gasto.monto }}</div>
+                            <div class="gasto">
+                                <!-- Botón de confirmación -->
+                                <button type="button" class="btn btn-outline-success btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="confirmarGasto('{{ gasto.id_gasto }}','{{gasto.categoria}}')">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                  </button>
+                                <button type="button" class="btn btn-outline-dark  btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditar" 
+                                        data-gasto-id="{{ gasto.id_gasto }}" 
+                                        onclick="abrirModalConfirmarYEditarGasto('{{ gasto.id_gasto }}','{{gasto.categoria}}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                            
+                            </div>
+                        </div>
+                        <!--Se agrego el 15/11/2024 16:39-->
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-secondary text-center rounded-pill p-2 " style="font-size: 0.9rem;">
+                            No hay gastos pendientes.
+                        </div>
+                    {% endif %}
+                    </div>
+                <!--Se agrego hasta aca el 15/11/2024 16:39-->
+                <!--Fin tabla gastos-->
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+              Ingreso sin confirmacion 
+            </button>
+          </h2>
+          <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!--Agregado el 15/11/2024-->
+              <!--Tabla ingresos-->
+
+                <div class="ingresos-container">
+                    {% if ingresos_pendientes %}
+                    {% for ingreso in ingresos_pendientes %}
+                    <div class="ingreso-item rounded-pill p-2" style="font-size: 0.9rem;">
+                        <div class="ingreso-campo"><strong>Categoria: </strong> {{ ingreso.categoria }}</div>
+                        <div class="ingreso-campo"><strong>Nombre: </strong>{{ ingreso.nombre }}</div>
+                        <div class="ingreso-campo"><strong>Monto: </strong>${{ ingreso.monto }}</div>
+                        <div class="ingreso">
+                            <!-- Botón de confirmación -->
+                            <button type="button" class="btn btn-outline-success btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#exampleModalIngreso" onclick="confirmarIngreso('{{ ingreso.id_ingreso }}','{{ingreso.categoria}}')">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                            <!-- Botón de editar -->
+                            <button type="button" class="btn btn-outline-dark  btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEditarIngreso" 
+                                data-ingreso-id="{{ ingreso.id_ingreso }}"
+                                onclick="abrirModalConfirmarYEditarIngreso('{{ ingreso.id_ingreso }}','{{ingreso.categoria}}')">
+                                
+                                <i class=" bi bi-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                        <div class="alert alert-secondary text-center rounded-pill p-2 " style="font-size: 0.9rem;">
+                            No hay ingresos pendientes.
+                        </div>
+                    {% endif %}
+                </div>
+                <!--Fin tablas ingresos-->
+
+                <!--Agregado hasta aca el 15/11/2024-->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!--Fin Acordeon-->
+
+    <br>
 
     <!-- Charts Section -->
     <div class="row">
@@ -419,5 +522,352 @@
     }
 </script>
 
+<!--Agregado el 15/11/2024-->
 
+
+<!-- Modal Editar y confirmar gasto -->
+<div class="modal fade" id="modalEditar" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabel">¿Desea Editar Y Confirmar que realizo Pago?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditaryConfirmarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="categoriaModal" class="form-label">Categoria</label>
+                        <input type="text" class="form-control" id="categoriaModal" name="categoria" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nombreModal" class="form-label">Gasto</label>
+                        <input type="text" class="form-control" id="nombreModal" name="nombre" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="montoModal" class="form-label">Monto Nuevo</label>
+                        <input type="number" class="form-control" id="montoModal" name="monto" required>
+                    </div>
+                <!-- Para el proximo sprint  
+                    <div class="mb-3">
+                        <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                        <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+                 -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirmar gasto -->
+<!--Se agrego el 15/11/2024 16:39-->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">¿Desea Confirmar que ya realizo el Pago?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="formConfirmarGasto" method="POST" action="" onsubmit=" return enviarEdicion(event)">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="categoriaModal_2" class="form-label">Categoria</label>
+                    <input type="text" class="form-control" id="categoriaModal_2" name="categoria" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label for="nombreModal_2" class="form-label">Gasto</label>
+                    <input type="text" class="form-control" id="nombreModal_2" name="nombre" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label for="montoModal_2" class="form-label">Monto</label>
+                    <input type="number" class="form-control" id="montoModal_2" name="monto" disabled>
+                </div>
+            <!-- Para el proximo sprint  
+                <div class="mb-3">
+                    <label for="metodo_pagoModal" class="form-label">Método de Pago</label>
+                    <select class="form-select" id="metodo_pagoModal" name="metodo_pago" required>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+             -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+
+
+<!-- Modal Confirmar Ingreso -->
+<div class="modal fade" id="exampleModalIngreso" tabindex="-1" aria-labelledby="exampleModalLabelIngreso" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabelIngreso">¿Desea confirmar que ya recibió el cobro del ingreso?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="formConfirmarIngreso" method="POST" action="" onsubmit="return enviarEdicion(event)">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="categoriaModal_ingreso" class="form-label">Categoría</label>
+                    <input type="text" class="form-control" id="categoriaModal_ingreso" name="categoria" disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="nombreModal_ingreso" class="form-label">Ingreso</label>
+                    <input type="text" class="form-control" id="nombreModal_ingreso" name="nombre" disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="montoModal_ingreso" class="form-label">Monto</label>
+                    <input type="number" class="form-control" id="montoModal_ingreso" name="monto" disabled>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!-- Modal Editar y Confirmar Ingreso  -->
+<div class="modal fade" id="modalEditarIngreso" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalEditarLabelIngreso" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarLabelIngreso">Editar y confirmar ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditaryConfirmarIngreso" method="POST" action="" onsubmit="return enviarEdicion(event)">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="categoriaModalIngreso" class="form-label">Categoría</label>
+                        <input type="text" class="form-control" id="categoriaModalIngreso" name="categoria" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombreModalIngreso" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreModalIngreso" name="nombre" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="montoModalIngreso" class="form-label">Monto Nuevo</label>
+                        <input type="number" class="form-control" id="montoModalIngreso" name="monto" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- gastos script -->
+<script>
+    function confirmarGasto(gastoId,categoria){
+
+        fetch(`/gastos/obtener/${gastoId}`)
+        
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                // Llena el modal con los datos del gasto
+                document.getElementById('categoriaModal_2').value = categoria;
+                document.getElementById('nombreModal_2').value = data.nombre;
+                document.getElementById('montoModal_2').value = data.monto;
+                //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+                
+
+                // Actualiza el action del formulario para que envíe a la URL de actualizar
+                const form = document.getElementById('formConfirmarGasto');
+                form.action = `/confirmarGasto/${gastoId}/`;
+                
+
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
+    }
+
+
+
+    //Funcion para abrir modal de editar y confirmar gasto
+    function abrirModalConfirmarYEditarGasto(gastoId,categoria) {
+    fetch(`/gastos/obtener/${gastoId}`)
+    
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            // Llena el modal con los datos del gasto
+            document.getElementById('categoriaModal').value = categoria;
+            document.getElementById('nombreModal').value = data.nombre;
+            document.getElementById('montoModal').value = data.monto;
+            //document.getElementById('metodo_pagoModal').value = data.metodo_pago; // Agregado para método de pago
+            
+
+            // Actualiza el action del formulario para que envíe a la URL de actualizar
+            const form = document.getElementById('formEditaryConfirmarGasto');
+            form.action = `/confirmarYEditarGasto/${gastoId}/`;
+            
+
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+</script>
+
+<!-- ingresos script -->
+<script>
+    // Confirmar ingreso
+    function confirmarIngreso(ingresoId, categoria) {
+        fetch(`/ingresos/obtener/${ingresoId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    // Llena el modal con los datos del ingreso
+                    document.getElementById('categoriaModal_ingreso').value = categoria;
+                    document.getElementById('nombreModal_ingreso').value = data.nombre;
+                    document.getElementById('montoModal_ingreso').value = data.monto;
+
+                    // Actualiza el action del formulario
+                    const form = document.getElementById('formConfirmarIngreso');
+                    form.action = `/movimientos_ingresos/ConfirmarIngreso/${ingresoId}/`;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Editar y confirmar ingreso
+    function abrirModalConfirmarYEditarIngreso(ingresoId, categoria) {
+        fetch(`/ingresos/obtener/${ingresoId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    // Llena el modal con los datos del ingreso
+                    document.getElementById('categoriaModalIngreso').value = categoria;
+                    document.getElementById('nombreModalIngreso').value = data.nombre;
+                    document.getElementById('montoModalIngreso').value = data.monto;
+
+                    // Actualiza el action del formulario
+                    const form = document.getElementById('formEditaryConfirmarIngreso');
+                    form.action = `/confirmarYEditarIngreso/${ingresoId}/`;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+
+
+
+<!--Agregado hasta aca el 15/11/2024-->
+<!--Tablas-->
+<script>
+    $(document).ready(function() {
+        $('#gastos_fijos').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+            }
+        });
+    });
+</script>
+<!--Fin Tablas-->
+
+
+<style>
+.gastos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre los elementos */
+}
+
+.gasto-item {
+    display: flex;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para efecto de tarjeta */
+    background-color: #f9f9f9;
+}
+
+.gasto-campo {
+    flex: 1; /* Cada campo ocupa el mismo espacio */
+    padding: 4px;
+}
+
+
+.gasto-item {
+      background-color: #f8d7da; /* Un rojo claro */
+      border: 1px solid #f5c2c7; /* Borde ligeramente más oscuro */
+      border-radius: 5px; /* Opcional, para esquinas redondeadas */
+      padding: 10px; /* Opcional, para separar el contenido del borde */
+      margin-bottom: 10px; /* Espaciado entre elementos */
+  }
+</style>
+
+
+<style>
+    .ingresos-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Espacio entre los elementos */
+    }
+    
+    .ingreso-item {
+        display: flex;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 8px; /* Bordes redondeados */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para efecto de tarjeta */
+        background-color: #f9f9f9;
+    }
+    
+    .ingreso-campo {
+        flex: 1; /* Cada campo ocupa el mismo espacio */
+        padding: 4px;
+    }
+    
+    
+    .ingreso-item {
+          background-color: #f8d7da; /* Un rojo claro */
+          border: 1px solid #f5c2c7; /* Borde ligeramente más oscuro */
+          border-radius: 5px; /* Opcional, para esquinas redondeadas */
+          padding: 10px; /* Opcional, para separar el contenido del borde */
+          margin-bottom: 10px; /* Espaciado entre elementos */
+      }
+    </style>
 {% endblock %}
