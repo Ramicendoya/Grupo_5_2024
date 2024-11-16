@@ -600,6 +600,61 @@ class ObtenerIngresoView(View):
             return JsonResponse({'error': 'Ingreso no pertenece a la persona autenticada'}, status=404)
     
 
+
+class ConfirmarIngreso(View):
+    def post(self, request, ingreso_pk):
+        # Busco la persona
+           persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+            # Busco el ingreso por la pk que se pasa en la URL
+           ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
+           print(ingreso)
+           if ingreso.persona == persona:
+
+                movimientoingreso=MovimientoIngreso(
+                    monto=ingreso.monto,
+                    fecha = timezone.now().date(),
+                    bl_baja=0,
+                    ingreso=ingreso,
+                )
+                movimientoingreso.save()
+                referer = request.META.get('HTTP_REFERER')
+                if referer:
+                    return redirect(referer) 
+           else:
+                return JsonResponse({'error': 'Ingreso no pertenece a la persona autenticada'}, status=404)
+
+
+class ConfirmarYEditarIngreso(View):
+    def post(self, request, ingreso_pk):
+        print("entro")
+        # Busco la persona
+        persona = get_object_or_404(Persona, pk=1) # esto hay que reemplazarlo por la persona autenticada en la aplicacion
+
+        # Busco el ingreso por la pk que se pasa en la URL
+        ingreso = get_object_or_404(Ingreso, pk=ingreso_pk)
+
+        if ingreso.persona == persona:
+            ingreso.monto = request.POST.get('monto')
+            ingreso.save()
+            movimientoingreso=MovimientoIngreso(
+            monto=request.POST.get('monto'),
+            fecha = timezone.now().date(),
+            bl_baja=0,
+            ingreso=ingreso,
+            )
+            movimientoingreso.save()
+            
+            referer = request.META.get('HTTP_REFERER')
+            if referer:
+                return redirect(referer)    
+                
+
+            else:
+                return JsonResponse({'error': 'Ingreso no pertenece a la persona autenticada'}, status=404)
+
+
+
 class CategoriaView(View):
 
    def post(self, request,origen):        
