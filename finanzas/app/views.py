@@ -659,17 +659,17 @@ class ObtenerSaldoActualView(View):
     def get(self, request):
         try:
             # Obtener la persona autenticada
-            persona = get_object_or_404(Persona, pk=1)
+            persona = get_object_or_404(Persona, pk=1)  # Reemplazar '1' por el campo que identifica al usuario autenticado
 
-            # Calcular los ingresos totales (filtrar movimientos activos)
-            ingresos_total = Ingreso.objects.filter(
-                persona=persona,
+            # Calcular los ingresos totales (sumar los movimientos de ingresos activos)
+            ingresos_total = MovimientoIngreso.objects.filter(
+                ingreso__persona=persona,
                 bl_baja=0
             ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-            # Calcular los gastos totales (filtrar movimientos activos)
-            gastos_total = Gasto.objects.filter(
-                persona=persona,
+            # Calcular los gastos totales (sumar los movimientos de gastos activos)
+            gastos_total = MovimientoGasto.objects.filter(
+                gasto__persona=persona,
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
@@ -687,14 +687,14 @@ class ObtenerSaldoFuturoView(View):
             persona_id = 1  # Asumimos que el ID de la persona es 1
             persona = get_object_or_404(Persona, pk=persona_id)
 
-            # Obtener saldo actual
-            ingresos_total = Ingreso.objects.filter(
-                persona=persona,
+            # Obtener saldo actual desde movimientos
+            ingresos_total = MovimientoIngreso.objects.filter(
+                ingreso__persona=persona,
                 bl_baja=0
             ).aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
 
-            gastos_total = Gasto.objects.filter(
-                persona=persona,
+            gastos_total = MovimientoGasto.objects.filter(
+                gasto__persona=persona,
                 bl_baja=0
             ).aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
 
@@ -718,35 +718,34 @@ class ObtenerSaldoFuturoView(View):
 
     def calcular_saldo_futuro(self, persona, dias, saldo_actual):
         ingresos_futuros_total = 0
-        ingresos_fijos = Ingreso.objects.filter(
-            persona=persona,
-            bl_fijo=1,
-            bl_baja=0
+        ingresos_fijos = MovimientoIngreso.objects.filter(
+            ingreso__persona=persona,
+            ingreso__bl_fijo=True,
+            bl_baja=False
         )
 
-        for ingreso in ingresos_fijos:
-            recurrencias = Recurrencia.objects.filter(ingreso=ingreso, bl_baja=0)
+        for movimiento in ingresos_fijos:
+            recurrencias = Recurrencia.objects.filter(ingreso=movimiento.ingreso, bl_baja=False)
             for recurrencia in recurrencias:
                 repeticiones = dias // recurrencia.frecuencia
-                ingresos_futuros_total += ingreso.monto * repeticiones
+                ingresos_futuros_total += movimiento.monto * repeticiones
 
         gastos_futuros_total = 0
-        gastos_fijos = Gasto.objects.filter(
-            persona=persona,
-            bl_fijo=1,
-            bl_baja=0
+        gastos_fijos = MovimientoGasto.objects.filter(
+            gasto__persona=persona,
+            gasto__bl_fijo=True,
+            bl_baja=False
         )
 
-        for gasto in gastos_fijos:
-            recurrencias = Recurrencia.objects.filter(gasto=gasto, bl_baja=0)
+        for movimiento in gastos_fijos:
+            recurrencias = Recurrencia.objects.filter(gasto=movimiento.gasto, bl_baja=False)
             for recurrencia in recurrencias:
                 repeticiones = dias // recurrencia.frecuencia
-                gastos_futuros_total += gasto.monto * repeticiones
+                gastos_futuros_total += movimiento.monto * repeticiones
 
         saldo_futuro = saldo_actual + ingresos_futuros_total - gastos_futuros_total
         return saldo_futuro
     
-
 ####################################################################################################
 ####################################################################################################
 # Historico de saldos
