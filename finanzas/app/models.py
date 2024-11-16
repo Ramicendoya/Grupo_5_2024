@@ -94,3 +94,28 @@ class Meta(models.Model):
 
     def __str__(self):
         return f"Meta nombre: {self.nombre}"
+    
+class TipoOperacion(models.Model):
+    id = models.AutoField(primary_key=True)
+    polaridad = models.CharField(max_length=1)  
+    detalle = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    bl_baja = models.BooleanField()  
+
+   
+class Ahorro(models.Model):
+    id = models.AutoField(primary_key=True)
+    monto = models.FloatField()
+    detalle = models.TextField()
+    meta = models.ForeignKey(Meta, on_delete=models.CASCADE, null=True, blank=True)
+    tipo_operacion = models.ForeignKey(TipoOperacion, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    bl_baja = models.BooleanField() 
+    
+    def _str_(self):
+        return f"Ahorro {self.id} - Monto: {self.monto}"
+    
+    
+    
