@@ -152,30 +152,7 @@
     </ul>
     <div class="tab-content" id="ingresosTabsContent">
         <div class="tab-pane fade show active" id="ingresos-fijos" role="tabpanel" aria-labelledby="ingresos-fijos-tab">
-
-            <!-- Listado de Ingresos Fijos -->
-            {% for ingreso in ingresos_fijos %}
-            <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                <div>
-                    <span>${{ ingreso.monto }} - {{ ingreso.nombre }} - {{ ingreso.categoria }} - {{ ingreso.fecha }}
-                    </span>
-                </div>
-                <div>
-                    <!-- Ver mas informacion -->
-                    <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarIngresosButton"  data-ingreso-id="{{ ingreso.id }}" data-bs-toggle="modal" data-bs-target="#movimientosIngresosModal" ><i class="bi bi-eye"></i></button>
-
-                    <!-- Editar -->
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}"
-                        onclick="abrirModalEditar('{{ingreso.id}}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-
-                    <!-- Eliminar -->
-                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.pk %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();">                           
-                        <i class="bi bi-trash"></i>
-                    </button>
-
+            
             <!-- Listado de ingresos Fijos -->
                 <div class="container mt-5">
                     <h2>Tabla de ingresos Fijos</h2>
@@ -201,7 +178,7 @@
                                         
                                        <button type="button" class="btn btn-outline-primary btn-sm"  id="visualizarIngresosButton"  data-ingreso-id="{{ ingreso.id }}" data-bs-toggle="modal" data-bs-target="#movimientosIngresosModal" ><i class="bi bi-eye"></i></button>
                                        <!--Boton Editar-->
-                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
+                                       <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar" data-ingreso-id_edit="{{ ingreso.id }}" onclick="abrirModalEditar('{{ingreso.id}}')"><i class="bi bi-pencil"></i></button>
                                         <!--Boton Eliminar-->
                                         <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_ingreso' ingreso_pk=ingreso.id %}" onclick="setDeleteFormAction(this.dataset.url); event.preventDefault();"><i class="bi bi-trash"></i></button>
                                     </td>
